@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.OpenApi.Models;
 
 using System;
 using System.Collections.Generic;
@@ -68,6 +69,15 @@ namespace WebAppLab
 				options.AccessDeniedPath = "/Identity/Account/AccessDenied";
 				options.SlidingExpiration = true;
 			});
+
+			services.AddSwaggerGen(c =>
+				c.SwaggerDoc("v1", new OpenApiInfo
+				{
+					Version = "v1",
+					Title = "WebAppLab API",
+					Description = "An API of my internship project."
+				})
+			);
 		}
 
 		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -77,6 +87,13 @@ namespace WebAppLab
 			{
 				app.UseDeveloperExceptionPage();
 				app.UseMigrationsEndPoint();
+
+				app.UseSwagger();
+				app.UseSwaggerUI(c =>
+				{
+					c.SwaggerEndpoint("/swagger/v1/swagger.json", "WebAppLab API V1");
+					c.RoutePrefix = string.Empty;
+				});
 			}
 			else
 			{
