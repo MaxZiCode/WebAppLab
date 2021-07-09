@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 
+using Serilog;
 using WebAppLab.Data;
 
 namespace WebAppLab
@@ -52,6 +53,8 @@ namespace WebAppLab
 					c.SwaggerEndpoint("/swagger/v1/swagger.json", "WebAppLab API V1");
 					c.RoutePrefix = string.Empty;
 				});
+
+				app.UseSerilogRequestLogging();
 			}
 			else
 			{
