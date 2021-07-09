@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 
+using Serilog;
+
 namespace WebAppLab.Controllers
 {
 	[Route("api/[controller]")]
@@ -8,6 +10,7 @@ namespace WebAppLab.Controllers
 		[HttpGet]
 		public IActionResult GetInfo()
 		{
+			Log.Fatal("GetInfo request executes");
 			return Json("Hello World");
 		}
 	}
