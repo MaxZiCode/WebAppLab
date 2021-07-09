@@ -1,0 +1,1 @@
+dotnet ef migrations script -p Web/Web.csproj -o DAL/Migrations/script.sql
