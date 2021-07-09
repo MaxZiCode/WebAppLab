@@ -1,6 +1,7 @@
 using System;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Configuration;
 
 using Serilog;
 using Serilog.Events;
@@ -36,7 +37,11 @@ namespace WebAppLab
 
 		public static IHostBuilder CreateHostBuilder(string[] args) =>
 			Host.CreateDefaultBuilder(args)
-				.UseSerilog((context, configuration) => configuration.ReadFrom.Configuration(context.Configuration))
+				.ConfigureAppConfiguration(b => b.AddJsonFile("appsettings.Serilog.json"))
+				.UseSerilog((context, configuration) => configuration
+					.ReadFrom.Configuration(context.Configuration)
+					// Unable to add this setting in appSettings.json: https://github.com/serilog/serilog-sinks-map#configuration-with-appsettings-and-appsettingsjson.
+					.WriteTo.Map(evt => evt.Level, (level, wt) => wt.File($"Logs\\{level}-.log", rollingInterval: RollingInterval.Day, retainedFileCountLimit: 7)))
 				.ConfigureWebHostDefaults(webBuilder =>
 				{
 					webBuilder.UseStartup<Startup>();
