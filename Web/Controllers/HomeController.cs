@@ -1,17 +1,23 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-
-using Serilog;
+using Microsoft.Extensions.Logging;
 
 namespace WebAppLab.Controllers
 {
 	[Route("api/[controller]")]
 	public class HomeController : Controller
 	{
+		private readonly ILogger<HomeController> logger;
+
+		public HomeController(ILogger<HomeController> logger)
+		{
+			this.logger = logger;
+		}
+
 		[HttpGet]
 		public IActionResult GetInfo()
 		{
-			Log.Fatal("GetInfo request executes");
-			return Json("Hello World");
+			logger.LogInformation("GetInfo request executing");
+			return Ok("Hello World");
 		}
 	}
 }
