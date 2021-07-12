@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <UserSecretsId>aspnet-WebAppLab-AD0818D1-0A68-429F-A7A1-378EB8EABABE</UserSecretsId>
+    <RootNamespace>WebAppLab</RootNamespace>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">

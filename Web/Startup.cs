@@ -8,6 +8,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 
 using Serilog;
+
 using WebAppLab.Data;
 
 namespace WebAppLab
@@ -44,7 +45,8 @@ namespace WebAppLab
 		{
 			if (env.IsDevelopment())
 			{
-				app.UseDeveloperExceptionPage();
+				app.UseSerilogRequestLogging();
+
 				app.UseMigrationsEndPoint();
 
 				app.UseSwagger();
@@ -53,12 +55,10 @@ namespace WebAppLab
 					c.SwaggerEndpoint("/swagger/v1/swagger.json", "WebAppLab API V1");
 					c.RoutePrefix = string.Empty;
 				});
-
-				app.UseSerilogRequestLogging();
 			}
 			else
 			{
-				app.UseExceptionHandler("/Error");
+				app.UseExceptionLogging();
 				// The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
 				app.UseHsts();
 			}
