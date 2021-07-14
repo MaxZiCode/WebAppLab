@@ -15,6 +15,7 @@ namespace WebAppLab.Controllers
 			this.logger = logger;
 		}
 
+		[Authorize(Roles = "Admin")]
 		[HttpGet]
 		public IActionResult GetInfo()
 		{

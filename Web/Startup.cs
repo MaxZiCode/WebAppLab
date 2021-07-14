@@ -9,6 +9,8 @@ using Microsoft.OpenApi.Models;
 
 using Serilog;
 
+using System.Threading.Tasks;
+
 using WebAppLab.Data;
 
 namespace WebAppLab
@@ -52,9 +54,10 @@ namespace WebAppLab
 			);
 		}
 
-		public void Configure(IApplicationBuilder app, IWebHostEnvironment env, RoleManager<IdentityRole> roleManager)
+		public void Configure(IApplicationBuilder app, IWebHostEnvironment env, RoleManager<IdentityRole> roleManager, UserManager<IdentityUser> userManager)
 		{
 			EnsureRolesCreated(roleManager);
+			EnsureAdminCreated(userManager);
 
 			if (env.IsDevelopment())
 			{
@@ -99,6 +102,20 @@ namespace WebAppLab
 				{
 					roleManager.CreateAsync(new IdentityRole(role)).Wait();
 				}
+			}
+		}
+
+		private void EnsureAdminCreated(UserManager<IdentityUser> userManager)
+		{
+			const string email = "admin@example.com";
+			const string password = "dUig6#D2ENd";
+
+			var user = userManager.FindByEmailAsync(email).Result;
+			if (user == null)
+			{
+				var admin = new IdentityUser() { Email = email, UserName = email };
+				userManager.CreateAsync(admin, password).Wait();
+				userManager.AddToRoleAsync(admin, "Admin").Wait();
 			}
 		}
 	}
