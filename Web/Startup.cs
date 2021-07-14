@@ -25,7 +25,18 @@ namespace WebAppLab
 		public void ConfigureServices(IServiceCollection services)
 		{
 			services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"), b => b.MigrationsAssembly("Web")));
-			services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
+			services.AddDefaultIdentity<IdentityUser>(options =>
+				{
+					options.User.AllowedUserNameCharacters = string.Empty;
+					options.User.RequireUniqueEmail = false;
+
+					options.Password.RequireDigit = false;
+					options.Password.RequiredLength = 0;
+					options.Password.RequiredUniqueChars = 0;
+					options.Password.RequireLowercase = false;
+					options.Password.RequireNonAlphanumeric = false;
+					options.Password.RequireUppercase = false;
+				})
 				.AddEntityFrameworkStores<ApplicationDbContext>();
 			services.AddDatabaseDeveloperPageExceptionFilter();
 
@@ -39,23 +50,6 @@ namespace WebAppLab
 					Description = "An API of my internship project."
 				})
 			);
-
-			services.Configure<IdentityOptions>(options =>
-			{
-				options.User.AllowedUserNameCharacters = string.Empty;
-				options.User.RequireUniqueEmail = false;
-
-				options.Password.RequireDigit = false;
-				options.Password.RequiredLength = 0;
-				options.Password.RequiredUniqueChars = 0;
-				options.Password.RequireLowercase = false;
-				options.Password.RequireNonAlphanumeric = false;
-				options.Password.RequireUppercase = false;
-
-				options.SignIn.RequireConfirmedAccount = false;
-				options.SignIn.RequireConfirmedEmail = false;
-				options.SignIn.RequireConfirmedPhoneNumber = false;
-			});
 		}
 
 		public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
