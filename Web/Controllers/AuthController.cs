@@ -29,7 +29,7 @@ namespace WebAppLab.Controllers
 		}
 
 		[HttpPost("signUp")]
-		public async Task<IActionResult> SignUp([FromBody] AuthData authData)
+		public async Task<IActionResult> SignUpAsync([FromBody] AuthData authData)
 		{
 			const string logMessageFormat = "Unable to sign up a new user {user}. {errors}";
 			const string emailMessage = "Email is incorrect.";
@@ -39,7 +39,7 @@ namespace WebAppLab.Controllers
 				authData.Email,
 				// Regex source: https://ihateregex.io/expr/email/.
 				@"[^@ \t\r\n]+@[^@ \t\r\n]+\.[^@ \t\r\n]+",
-				RegexOptions.Compiled | RegexOptions.CultureInvariant, 
+				RegexOptions.Compiled | RegexOptions.CultureInvariant,
 				TimeSpan.FromMilliseconds(128));
 
 			if (!isEmailCorrect)
@@ -66,13 +66,42 @@ namespace WebAppLab.Controllers
 			var result = await userManager.CreateAsync(user, authData.Password);
 			if (result.Succeeded)
 			{
-				logger.LogInformation($"User {authData.Email} just registered");
+				logger.LogInformation("New user {user} just signed up", authData.Email);
 				return StatusCode(201);
 			}
 
 			var errorMessage = string.Join(' ', result.Errors.Select(e => e.Description));
 			logger.LogWarning(logMessageFormat, authData.Email, errorMessage);
 			return BadRequest(new { errorMessage });
+		}
+
+		[HttpPost("signIn")]
+		public async Task<IActionResult> SignInAsync([FromBody] AuthData authData)
+		{
+			var result = await signInManager.PasswordSignInAsync(authData.Email, authData.Password, isPersistent: false, lockoutOnFailure: false);
+			if (result.Succeeded)
+			{
+				logger.LogInformation("User {user} just signed in", authData.Email);
+				return Ok();
+			}
+
+			logger.LogWarning("Unable to sign in a user {user}", authData.Email);
+			return Unauthorized();
+		}
+
+		[HttpPost("signOut")]
+		public async Task<IActionResult> SignOutAsync()
+		{
+			if (User.Identity.IsAuthenticated)
+			{
+				var name = User.Identity.Name;
+				await signInManager.SignOutAsync();
+				logger.LogInformation("User {user} just signed out", name);
+				return Ok();
+			}
+
+			logger.LogInformation("A user is not authenticated");
+			return Unauthorized();
 		}
 	}
 }
