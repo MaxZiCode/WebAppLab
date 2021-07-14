@@ -19,14 +19,12 @@ namespace WebAppLab.Controllers
 		private readonly ILogger<AuthController> logger;
 		private readonly UserManager<IdentityUser> userManager;
 		private readonly SignInManager<IdentityUser> signInManager;
-		private readonly IEmailSender emailSender;
 
-		public AuthController(ILogger<AuthController> logger, UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager, IEmailSender emailSender)
+		public AuthController(ILogger<AuthController> logger, UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager)
 		{
 			this.logger = logger;
 			this.userManager = userManager;
 			this.signInManager = signInManager;
-			this.emailSender = emailSender;
 		}
 
 		[HttpPost("signUp")]

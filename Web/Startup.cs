@@ -25,7 +25,7 @@ namespace WebAppLab
 		public void ConfigureServices(IServiceCollection services)
 		{
 			services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"), b => b.MigrationsAssembly("Web")));
-			services.AddDefaultIdentity<IdentityUser>(options =>
+			services.AddIdentity<IdentityUser, IdentityRole>(options =>
 				{
 					options.User.AllowedUserNameCharacters = string.Empty;
 					options.User.RequireUniqueEmail = false;
@@ -52,8 +52,10 @@ namespace WebAppLab
 			);
 		}
 
-		public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+		public void Configure(IApplicationBuilder app, IWebHostEnvironment env, RoleManager<IdentityRole> roleManager)
 		{
+			EnsureRolesCreated(roleManager);
+
 			if (env.IsDevelopment())
 			{
 				app.UseSerilogRequestLogging();
@@ -86,6 +88,18 @@ namespace WebAppLab
 			{
 				endpoints.MapControllers();
 			});
+		}
+
+		private void EnsureRolesCreated(RoleManager<IdentityRole> roleManager)
+		{
+			foreach (var role in new[] { "Admin", "User" })
+			{
+				var isRoleExists = roleManager.RoleExistsAsync(role).Result;
+				if (!isRoleExists)
+				{
+					roleManager.CreateAsync(new IdentityRole(role)).Wait();
+				}
+			}
 		}
 	}
 }
