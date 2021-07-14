@@ -39,6 +39,19 @@ namespace WebAppLab
 					Description = "An API of my internship project."
 				})
 			);
+
+			services.Configure<IdentityOptions>(options =>
+			{
+				options.User.AllowedUserNameCharacters = string.Empty;
+				options.User.RequireUniqueEmail = false;
+
+				options.Password.RequireDigit = false;
+				options.Password.RequiredLength = 0;
+				options.Password.RequiredUniqueChars = 0;
+				options.Password.RequireLowercase = false;
+				options.Password.RequireNonAlphanumeric = false;
+				options.Password.RequireUppercase = false;
+			});
 		}
 
 		public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
