@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -89,19 +90,14 @@ namespace WebAppLab.Controllers
 			return Unauthorized();
 		}
 
+		[Authorize]
 		[HttpPost("signOut")]
 		public async Task<IActionResult> SignOutAsync()
 		{
-			if (User.Identity.IsAuthenticated)
-			{
-				var name = User.Identity.Name;
-				await signInManager.SignOutAsync();
-				logger.LogInformation("User {user} just signed out", name);
-				return Ok();
-			}
-
-			logger.LogInformation("A user is not authenticated");
-			return Unauthorized();
+			var name = User.Identity.Name;
+			await signInManager.SignOutAsync();
+			logger.LogInformation("User {user} just signed out", name);
+			return Ok();
 		}
 	}
 }
