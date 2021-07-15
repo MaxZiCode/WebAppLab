@@ -52,6 +52,9 @@ namespace WebAppLab
 					Description = "An API of my internship project."
 				})
 			);
+
+			services.Configure<SmtpSettings>(Configuration.GetSection(nameof(SmtpSettings)));
+			services.AddTransient<IEmailSender, DefaultEmailSender>();
 		}
 
 		public void Configure(IApplicationBuilder app, IWebHostEnvironment env, RoleManager<IdentityRole> roleManager, UserManager<IdentityUser> userManager)

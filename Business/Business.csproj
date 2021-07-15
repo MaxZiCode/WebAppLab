@@ -15,4 +15,8 @@
     <ProjectReference Include="..\DAL\DAL.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="MailKit" Version="2.13.0" />
+  </ItemGroup>
+
 </Project>

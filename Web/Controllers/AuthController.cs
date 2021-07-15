@@ -19,12 +19,14 @@ namespace WebAppLab.Controllers
 		private readonly ILogger<AuthController> logger;
 		private readonly UserManager<IdentityUser> userManager;
 		private readonly SignInManager<IdentityUser> signInManager;
+		private readonly IEmailSender emailSender;
 
-		public AuthController(ILogger<AuthController> logger, UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager)
+		public AuthController(ILogger<AuthController> logger, UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager, IEmailSender emailSender)
 		{
 			this.logger = logger;
 			this.userManager = userManager;
 			this.signInManager = signInManager;
+			this.emailSender = emailSender;
 		}
 
 		[HttpPost("signUp")]
@@ -66,6 +68,7 @@ namespace WebAppLab.Controllers
 			if (result.Succeeded)
 			{
 				logger.LogInformation("New user {user} just signed up", authData.Email);
+				await emailSender.SendAsync(authData.Email, "Confirm please", @"<h1> CONFIRM </h1>");
 				return StatusCode(201);
 			}
 
