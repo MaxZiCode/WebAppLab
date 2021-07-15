@@ -1,10 +1,12 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Logging;
 
 namespace WebAppLab.Controllers
 {
 	[Route("api/[controller]")]
-	public class HomeController : Controller
+	[ApiController]
+	public class HomeController : ControllerBase
 	{
 		private readonly ILogger<HomeController> logger;
 
@@ -13,6 +15,7 @@ namespace WebAppLab.Controllers
 			this.logger = logger;
 		}
 
+		[Authorize(Roles = "Admin")]
 		[HttpGet]
 		public IActionResult GetInfo()
 		{

@@ -9,6 +9,8 @@ using Microsoft.OpenApi.Models;
 
 using Serilog;
 
+using System.Threading.Tasks;
+
 using WebAppLab.Data;
 
 namespace WebAppLab
@@ -25,8 +27,20 @@ namespace WebAppLab
 		public void ConfigureServices(IServiceCollection services)
 		{
 			services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"), b => b.MigrationsAssembly("Web")));
-			services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
-				.AddEntityFrameworkStores<ApplicationDbContext>();
+			services.AddIdentity<IdentityUser, IdentityRole>(options =>
+				{
+					options.User.AllowedUserNameCharacters = string.Empty;
+					options.User.RequireUniqueEmail = false;
+
+					options.Password.RequireDigit = false;
+					options.Password.RequiredLength = 0;
+					options.Password.RequiredUniqueChars = 0;
+					options.Password.RequireLowercase = false;
+					options.Password.RequireNonAlphanumeric = false;
+					options.Password.RequireUppercase = false;
+				})
+				.AddEntityFrameworkStores<ApplicationDbContext>()
+				.AddDefaultTokenProviders();
 			services.AddDatabaseDeveloperPageExceptionFilter();
 
 			services.AddControllers();
@@ -39,10 +53,16 @@ namespace WebAppLab
 					Description = "An API of my internship project."
 				})
 			);
+
+			services.Configure<SmtpSettings>(Configuration.GetSection(nameof(SmtpSettings)));
+			services.AddTransient<IEmailSender, DefaultEmailSender>();
 		}
 
-		public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+		public void Configure(IApplicationBuilder app, IWebHostEnvironment env, RoleManager<IdentityRole> roleManager, UserManager<IdentityUser> userManager)
 		{
+			EnsureRolesCreated(roleManager);
+			EnsureAdminCreated(userManager);
+
 			if (env.IsDevelopment())
 			{
 				app.UseSerilogRequestLogging();
@@ -75,6 +95,32 @@ namespace WebAppLab
 			{
 				endpoints.MapControllers();
 			});
+		}
+
+		private void EnsureRolesCreated(RoleManager<IdentityRole> roleManager)
+		{
+			foreach (var role in new[] { "Admin", "User" })
+			{
+				var isRoleExists = roleManager.RoleExistsAsync(role).Result;
+				if (!isRoleExists)
+				{
+					roleManager.CreateAsync(new IdentityRole(role)).Wait();
+				}
+			}
+		}
+
+		private void EnsureAdminCreated(UserManager<IdentityUser> userManager)
+		{
+			const string email = "admin@example.com";
+			const string password = "dUig6#D2ENd";
+
+			var user = userManager.FindByEmailAsync(email).Result;
+			if (user == null)
+			{
+				var admin = new IdentityUser() { Email = email, UserName = email };
+				userManager.CreateAsync(admin, password).Wait();
+				userManager.AddToRoleAsync(admin, "Admin").Wait();
+			}
 		}
 	}
 }
