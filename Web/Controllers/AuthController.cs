@@ -29,13 +29,9 @@ namespace WebAppLab.Controllers
 			this.emailSender = emailSender;
 		}
 
-		[HttpPost("signUp")]
-		public async Task<IActionResult> SignUpAsync([FromBody] AuthData authData)
+		[HttpPost("SignUp")]
+		public async Task<IActionResult> SignUp([FromBody] AuthData authData)
 		{
-			const string logMessageFormat = "Unable to sign up a new user {user}. {errors}";
-			const string emailMessage = "Email is incorrect.";
-			const string passwordMessage = "Password is incorrect.";
-
 			bool isEmailCorrect = Regex.IsMatch(
 				authData.Email,
 				// Regex source: https://ihateregex.io/expr/email/.
@@ -43,8 +39,10 @@ namespace WebAppLab.Controllers
 				RegexOptions.Compiled | RegexOptions.CultureInvariant,
 				TimeSpan.FromMilliseconds(128));
 
+			const string logMessageFormat = "Unable to sign up a new user {user}. {errors}";
 			if (!isEmailCorrect)
 			{
+				const string emailMessage = "Email is incorrect.";
 				logger.LogWarning(logMessageFormat, authData.Email, emailMessage);
 				return BadRequest(new { errorMessage = emailMessage });
 			}
@@ -58,17 +56,17 @@ namespace WebAppLab.Controllers
 
 			if (!isPasswordCorrect)
 			{
+				const string passwordMessage = "Password is incorrect.";
 				logger.LogWarning(logMessageFormat, authData.Email, passwordMessage);
 				return BadRequest(new { errorMessage = passwordMessage });
 			}
 
 			var user = new IdentityUser { Email = authData.Email, UserName = authData.Email };
-
 			var result = await userManager.CreateAsync(user, authData.Password);
 			if (result.Succeeded)
 			{
 				logger.LogInformation("New user {user} just signed up", authData.Email);
-				await emailSender.SendAsync(authData.Email, "Confirm please", @"<h1> CONFIRM </h1>");
+				await SendEmailConfirmationMessageAsync(user);
 				return StatusCode(201);
 			}
 
@@ -77,8 +75,15 @@ namespace WebAppLab.Controllers
 			return BadRequest(new { errorMessage });
 		}
 
-		[HttpPost("signIn")]
-		public async Task<IActionResult> SignInAsync([FromBody] AuthData authData)
+		private async Task SendEmailConfirmationMessageAsync(IdentityUser user)
+		{
+			var code = await userManager.GenerateEmailConfirmationTokenAsync(user);
+			var confirmationUrl = Url.Action(nameof(ConfirmEmail), "Auth", new { userId = user.Id, code }, protocol: HttpContext.Request.Scheme);
+			await emailSender.SendAsync(user.Email, "WebAppLab email confirmation", @$"<h4>Email confirmation link: <a href='{confirmationUrl}'>confirm email</a></h4>");
+		}
+
+		[HttpPost("SignIn")]
+		public async Task<IActionResult> SignIn([FromBody] AuthData authData)
 		{
 			var result = await signInManager.PasswordSignInAsync(authData.Email, authData.Password, isPersistent: false, lockoutOnFailure: false);
 			if (result.Succeeded)
@@ -92,13 +97,36 @@ namespace WebAppLab.Controllers
 		}
 
 		[Authorize]
-		[HttpPost("signOut")]
-		public async Task<IActionResult> SignOutAsync()
+		[HttpPost("SignOut")]
+		public async Task<IActionResult> SignOutPost()
 		{
 			var name = User.Identity.Name;
 			await signInManager.SignOutAsync();
 			logger.LogInformation("User {user} just signed out", name);
 			return Ok();
+		}
+
+		[HttpGet("ConfirmEmail")]
+		public async Task<IActionResult> ConfirmEmail(string userId, string code)
+		{
+			var user = await userManager.FindByIdAsync(userId);
+			if (user == null)
+			{
+				logger.LogWarning("Email confirmation warning: a user with id {id} not found", userId);
+				return NotFound();
+			}
+
+			var result = await userManager.ConfirmEmailAsync(user, code);
+			if (result.Succeeded)
+			{
+				logger.LogInformation("A user {user} has confirmed own email", user.Email);
+				HttpContext.Response.ContentType = "text/html; charset=utf-8";
+				return Content("Email confirmed!");
+			}
+
+			var errorMessage = string.Join(' ', result.Errors.Select(e => e.Description));
+			logger.LogWarning("Email {email} confirmation failed: {errors}", user.Email, errorMessage);
+			return BadRequest(new { errorMessage });
 		}
 	}
 }
