@@ -58,6 +58,11 @@ namespace WebAppLab
 
 			services.AddDefaultEmailSender(Configuration);
 			services.Configure<AuthData>(Configuration.GetSection("Admin"));
+
+			services.AddTransient<IEmailChecker, RegexEmailChecker>();
+			services.AddTransient<IPasswordChecker, RegexPasswordChecker>();
+			services.AddTransient<IUserCreator, DefaultUserCreator>();
+			services.AddTransient<IConfirmEmailSender, DefaultConfirmEmailSender>();
 		}
 
 		public void Configure(

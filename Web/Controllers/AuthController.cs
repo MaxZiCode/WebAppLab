@@ -3,9 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
-using System;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 using WebAppLab.Constants;
@@ -21,27 +19,27 @@ namespace WebAppLab.Controllers
 		private readonly ILogger<AuthController> logger;
 		private readonly UserManager<IdentityUser> userManager;
 		private readonly SignInManager<IdentityUser> signInManager;
-		private readonly IEmailSender emailSender;
+		private readonly IEmailChecker emailChecker;
+		private readonly IPasswordChecker passwordChecker;
+		private readonly IUserCreator userCreator;
+		private readonly IConfirmEmailSender confirmEmailSender;
 
-		public AuthController(ILogger<AuthController> logger, UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager, IEmailSender emailSender)
+		public AuthController(ILogger<AuthController> logger, UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager, IEmailChecker emailChecker, IPasswordChecker passwordChecker, IUserCreator userCreator, IConfirmEmailSender confirmEmailSender)
 		{
 			this.logger = logger;
 			this.userManager = userManager;
 			this.signInManager = signInManager;
-			this.emailSender = emailSender;
+			this.emailChecker = emailChecker;
+			this.passwordChecker = passwordChecker;
+			this.userCreator = userCreator;
+			this.confirmEmailSender = confirmEmailSender;
 		}
 
 		[HttpPost("SignUp")]
 		public async Task<IActionResult> SignUp([FromBody] AuthData authData)
 		{
-			bool isEmailCorrect = Regex.IsMatch(
-				authData.Email,
-				// Regex source: https://ihateregex.io/expr/email/.
-				@"[^@ \t\r\n]+@[^@ \t\r\n]+\.[^@ \t\r\n]+",
-				RegexOptions.Compiled | RegexOptions.CultureInvariant,
-				TimeSpan.FromMilliseconds(128));
-
 			const string logMessageFormat = "Unable to sign up a new user {user}. {errors}";
+			bool isEmailCorrect = emailChecker.Check(authData.Email);
 			if (!isEmailCorrect)
 			{
 				const string emailMessage = "Email is incorrect.";
@@ -49,13 +47,7 @@ namespace WebAppLab.Controllers
 				return BadRequest(new { errorMessage = emailMessage });
 			}
 
-			bool isPasswordCorrect = Regex.IsMatch(
-				authData.Password,
-				// Regex source: https://ihateregex.io/expr/password/.
-				@"^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$ %^&*-]).{8,24}$",
-				RegexOptions.Compiled | RegexOptions.CultureInvariant,
-				TimeSpan.FromMilliseconds(128));
-
+			bool isPasswordCorrect = passwordChecker.Check(authData.Password);
 			if (!isPasswordCorrect)
 			{
 				const string passwordMessage = "Password is incorrect.";
@@ -63,26 +55,18 @@ namespace WebAppLab.Controllers
 				return BadRequest(new { errorMessage = passwordMessage });
 			}
 
-			var user = new IdentityUser { Email = authData.Email, UserName = authData.Email };
-			var resultCreate = await userManager.CreateAsync(user, authData.Password);
-			var resultRole = await userManager.AddToRoleAsync(user, Roles.User);
-			if (resultCreate.Succeeded && resultRole.Succeeded)
+			var user = new IdentityUser() { UserName = authData.Email, Email = authData.Email };
+			var result = await userCreator.CreateAsync(user, authData.Password, Roles.User);
+			if (result.Succeeded)
 			{
 				logger.LogInformation("New user {user} just signed up", authData.Email);
-				await SendEmailConfirmationMessageAsync(user);
+				await confirmEmailSender.SendAsync(user, HttpContext);
 				return StatusCode(201);
 			}
 
-			var errorMessage = string.Join(' ', resultCreate.Errors.Concat(resultRole.Errors).Select(e => e.Description));
+			var errorMessage = string.Join(' ', result.Errors.Select(e => e.Description));
 			logger.LogWarning(logMessageFormat, authData.Email, errorMessage);
 			return BadRequest(new { errorMessage });
-		}
-
-		private async Task SendEmailConfirmationMessageAsync(IdentityUser user)
-		{
-			var code = await userManager.GenerateEmailConfirmationTokenAsync(user);
-			var confirmationUrl = Url.Action(nameof(ConfirmEmail), "Auth", new { userId = user.Id, code }, protocol: HttpContext.Request.Scheme);
-			await emailSender.SendAsync(user.Email, "WebAppLab email confirmation", @$"<h4>Email confirmation link: <a href='{confirmationUrl}'>confirm email</a></h4>");
 		}
 
 		[HttpPost("SignIn")]
