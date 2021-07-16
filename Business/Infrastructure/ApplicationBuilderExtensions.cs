@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Builder;
 
-namespace WebAppLab
+namespace WebAppLab.Infrastructure
 {
 	public static class ApplicationBuilderExtensions
 	{

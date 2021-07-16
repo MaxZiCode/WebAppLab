@@ -10,6 +10,7 @@ using Microsoft.OpenApi.Models;
 using Serilog;
 
 using WebAppLab.Data;
+using WebAppLab.Infrastructure;
 
 namespace WebAppLab
 {

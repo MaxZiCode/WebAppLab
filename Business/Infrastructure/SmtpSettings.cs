@@ -1,6 +1,6 @@
 ﻿using MailKit.Security;
 
-namespace WebAppLab
+namespace WebAppLab.Infrastructure
 {
 	public class SmtpSettings
 	{

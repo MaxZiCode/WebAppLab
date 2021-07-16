@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace WebAppLab
+namespace WebAppLab.Helpers
 {
 	public interface IEmailSender
 	{

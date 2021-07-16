@@ -7,7 +7,9 @@ using MimeKit;
 
 using System.Threading.Tasks;
 
-namespace WebAppLab
+using WebAppLab.Infrastructure;
+
+namespace WebAppLab.Helpers
 {
 	public class DefaultEmailSender : IEmailSender
 	{

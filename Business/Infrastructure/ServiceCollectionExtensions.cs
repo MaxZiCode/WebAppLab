@@ -1,7 +1,9 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace WebAppLab
+using WebAppLab.Helpers;
+
+namespace WebAppLab.Infrastructure
 {
 	public static class ServiceCollectionExtensions
 	{

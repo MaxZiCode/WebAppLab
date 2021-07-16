@@ -1,4 +1,4 @@
-﻿namespace WebAppLab
+﻿namespace WebAppLab.Models
 {
 	public class AuthData
 	{
