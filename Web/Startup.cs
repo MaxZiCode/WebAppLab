@@ -10,8 +10,8 @@ using Microsoft.OpenApi.Models;
 
 using Serilog;
 
-using WebAppLab.Constants;
 using WebAppLab.Data;
+using WebAppLab.Helpers;
 using WebAppLab.Infrastructure;
 using WebAppLab.Models;
 
@@ -61,14 +61,11 @@ namespace WebAppLab
 		}
 
 		public void Configure(
-			IApplicationBuilder app,
-			IWebHostEnvironment env,
-			RoleManager<IdentityRole> roleManager,
-			UserManager<IdentityUser> userManager,
-			IOptions<AuthData> adminOptions)
+			IApplicationBuilder app, IWebHostEnvironment env,
+			RoleManager<IdentityRole> roleManager, UserManager<IdentityUser> userManager, IOptions<AuthData> adminOptions)
 		{
-			EnsureRolesCreated(roleManager);
-			EnsureAdminCreated(userManager, adminOptions);
+			DbFiller.EnsureRolesCreatedAsync(roleManager).Wait();
+			DbFiller.EnsureAdminCreatedAsync(userManager, adminOptions).Wait();
 
 			if (env.IsDevelopment())
 			{
@@ -102,31 +99,6 @@ namespace WebAppLab
 			{
 				endpoints.MapControllers();
 			});
-		}
-
-		private void EnsureRolesCreated(RoleManager<IdentityRole> roleManager)
-		{
-			foreach (var role in new[] { Roles.Admin, Roles.User })
-			{
-				var isRoleExists = roleManager.RoleExistsAsync(role).Result;
-				if (!isRoleExists)
-				{
-					roleManager.CreateAsync(new IdentityRole(role)).Wait();
-				}
-			}
-		}
-
-		private void EnsureAdminCreated(UserManager<IdentityUser> userManager, IOptions<AuthData> adminOptions)
-		{
-			var adminData = adminOptions.Value;
-
-			var user = userManager.FindByEmailAsync(adminData.Email).Result;
-			if (user == null)
-			{
-				var admin = new IdentityUser() { Email = adminData.Email, UserName = adminData.Email };
-				userManager.CreateAsync(admin, adminData.Password).Wait();
-				userManager.AddToRoleAsync(admin, Roles.Admin).Wait();
-			}
 		}
 	}
 }
