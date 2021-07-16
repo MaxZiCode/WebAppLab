@@ -1,12 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
 using System;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -62,15 +60,16 @@ namespace WebAppLab.Controllers
 			}
 
 			var user = new IdentityUser { Email = authData.Email, UserName = authData.Email };
-			var result = await userManager.CreateAsync(user, authData.Password);
-			if (result.Succeeded)
+			var resultCreate = await userManager.CreateAsync(user, authData.Password);
+			var resultRole = await userManager.AddToRoleAsync(user, "User");
+			if (resultCreate.Succeeded && resultRole.Succeeded)
 			{
 				logger.LogInformation("New user {user} just signed up", authData.Email);
 				await SendEmailConfirmationMessageAsync(user);
 				return StatusCode(201);
 			}
 
-			var errorMessage = string.Join(' ', result.Errors.Select(e => e.Description));
+			var errorMessage = string.Join(' ', resultCreate.Errors.Concat(resultRole.Errors).Select(e => e.Description));
 			logger.LogWarning(logMessageFormat, authData.Email, errorMessage);
 			return BadRequest(new { errorMessage });
 		}
