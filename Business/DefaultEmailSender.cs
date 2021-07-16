@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using MailKit.Net.Smtp;
+﻿using MailKit.Net.Smtp;
+
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+
 using MimeKit;
 
-using Microsoft.Extensions.Options;
-using Microsoft.Extensions.Logging;
-using MailKit.Security;
+using System.Threading.Tasks;
 
 namespace WebAppLab
 {

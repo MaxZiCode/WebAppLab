@@ -9,8 +9,6 @@ using Microsoft.OpenApi.Models;
 
 using Serilog;
 
-using System.Threading.Tasks;
-
 using WebAppLab.Data;
 
 namespace WebAppLab
@@ -54,8 +52,7 @@ namespace WebAppLab
 				})
 			);
 
-			services.Configure<SmtpSettings>(Configuration.GetSection(nameof(SmtpSettings)));
-			services.AddTransient<IEmailSender, DefaultEmailSender>();
+			services.AddDefaultEmailSender(Configuration);
 		}
 
 		public void Configure(IApplicationBuilder app, IWebHostEnvironment env, RoleManager<IdentityRole> roleManager, UserManager<IdentityUser> userManager)
