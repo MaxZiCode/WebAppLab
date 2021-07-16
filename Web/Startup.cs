@@ -5,12 +5,15 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 
 using Serilog;
 
+using WebAppLab.Constants;
 using WebAppLab.Data;
 using WebAppLab.Infrastructure;
+using WebAppLab.Models;
 
 namespace WebAppLab
 {
@@ -54,12 +57,18 @@ namespace WebAppLab
 			);
 
 			services.AddDefaultEmailSender(Configuration);
+			services.Configure<AuthData>(Configuration.GetSection("Admin"));
 		}
 
-		public void Configure(IApplicationBuilder app, IWebHostEnvironment env, RoleManager<IdentityRole> roleManager, UserManager<IdentityUser> userManager)
+		public void Configure(
+			IApplicationBuilder app,
+			IWebHostEnvironment env,
+			RoleManager<IdentityRole> roleManager,
+			UserManager<IdentityUser> userManager,
+			IOptions<AuthData> adminOptions)
 		{
 			EnsureRolesCreated(roleManager);
-			EnsureAdminCreated(userManager);
+			EnsureAdminCreated(userManager, adminOptions);
 
 			if (env.IsDevelopment())
 			{
@@ -97,7 +106,7 @@ namespace WebAppLab
 
 		private void EnsureRolesCreated(RoleManager<IdentityRole> roleManager)
 		{
-			foreach (var role in new[] { "Admin", "User" })
+			foreach (var role in new[] { Roles.Admin, Roles.User })
 			{
 				var isRoleExists = roleManager.RoleExistsAsync(role).Result;
 				if (!isRoleExists)
@@ -107,17 +116,16 @@ namespace WebAppLab
 			}
 		}
 
-		private void EnsureAdminCreated(UserManager<IdentityUser> userManager)
+		private void EnsureAdminCreated(UserManager<IdentityUser> userManager, IOptions<AuthData> adminOptions)
 		{
-			const string email = "admin@example.com";
-			const string password = "dUig6#D2ENd";
+			var adminData = adminOptions.Value;
 
-			var user = userManager.FindByEmailAsync(email).Result;
+			var user = userManager.FindByEmailAsync(adminData.Email).Result;
 			if (user == null)
 			{
-				var admin = new IdentityUser() { Email = email, UserName = email };
-				userManager.CreateAsync(admin, password).Wait();
-				userManager.AddToRoleAsync(admin, "Admin").Wait();
+				var admin = new IdentityUser() { Email = adminData.Email, UserName = adminData.Email };
+				userManager.CreateAsync(admin, adminData.Password).Wait();
+				userManager.AddToRoleAsync(admin, Roles.Admin).Wait();
 			}
 		}
 	}

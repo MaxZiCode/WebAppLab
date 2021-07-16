@@ -8,6 +8,10 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
+using WebAppLab.Constants;
+using WebAppLab.Helpers;
+using WebAppLab.Models;
+
 namespace WebAppLab.Controllers
 {
 	[Route("api/[controller]")]
@@ -61,7 +65,7 @@ namespace WebAppLab.Controllers
 
 			var user = new IdentityUser { Email = authData.Email, UserName = authData.Email };
 			var resultCreate = await userManager.CreateAsync(user, authData.Password);
-			var resultRole = await userManager.AddToRoleAsync(user, "User");
+			var resultRole = await userManager.AddToRoleAsync(user, Roles.User);
 			if (resultCreate.Succeeded && resultRole.Succeeded)
 			{
 				logger.LogInformation("New user {user} just signed up", authData.Email);
