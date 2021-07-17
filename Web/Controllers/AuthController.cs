@@ -17,14 +17,14 @@ namespace WebAppLab.Controllers
 	public class AuthController : ControllerBase
 	{
 		private readonly ILogger<AuthController> logger;
-		private readonly UserManager<IdentityUser> userManager;
-		private readonly SignInManager<IdentityUser> signInManager;
+		private readonly UserManager<UserDbo> userManager;
+		private readonly SignInManager<UserDbo> signInManager;
 		private readonly IEmailChecker emailChecker;
 		private readonly IPasswordChecker passwordChecker;
-		private readonly IUserCreator userCreator;
-		private readonly IConfirmEmailSender confirmEmailSender;
+		private readonly IUserCreator<UserDbo> userCreator;
+		private readonly IConfirmEmailSender<UserDbo> confirmEmailSender;
 
-		public AuthController(ILogger<AuthController> logger, UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager, IEmailChecker emailChecker, IPasswordChecker passwordChecker, IUserCreator userCreator, IConfirmEmailSender confirmEmailSender)
+		public AuthController(ILogger<AuthController> logger, UserManager<UserDbo> userManager, SignInManager<UserDbo> signInManager, IEmailChecker emailChecker, IPasswordChecker passwordChecker, IUserCreator<UserDbo> userCreator, IConfirmEmailSender<UserDbo> confirmEmailSender)
 		{
 			this.logger = logger;
 			this.userManager = userManager;
@@ -55,7 +55,7 @@ namespace WebAppLab.Controllers
 				return BadRequest(new { errorMessage = passwordMessage });
 			}
 
-			var user = new IdentityUser() { UserName = authData.Email, Email = authData.Email };
+			var user = new UserDbo() { UserName = authData.Email, Email = authData.Email };
 			var result = await userCreator.CreateAsync(user, authData.Password, Roles.User);
 			if (result.Succeeded)
 			{

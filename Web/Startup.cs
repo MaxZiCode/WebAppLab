@@ -29,7 +29,7 @@ namespace WebAppLab
 		public void ConfigureServices(IServiceCollection services)
 		{
 			services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"), b => b.MigrationsAssembly("Web")));
-			services.AddIdentity<IdentityUser, IdentityRole>(options =>
+			services.AddIdentity<UserDbo, IdentityRole>(options =>
 				{
 					options.User.AllowedUserNameCharacters = string.Empty;
 					options.User.RequireUniqueEmail = false;
@@ -61,13 +61,13 @@ namespace WebAppLab
 
 			services.AddTransient<IEmailChecker, RegexEmailChecker>();
 			services.AddTransient<IPasswordChecker, RegexPasswordChecker>();
-			services.AddTransient<IUserCreator, DefaultUserCreator>();
-			services.AddTransient<IConfirmEmailSender, DefaultConfirmEmailSender>();
+			services.AddTransient<IUserCreator<UserDbo>, DefaultUserCreator<UserDbo>>();
+			services.AddTransient<IConfirmEmailSender<UserDbo>, DefaultConfirmEmailSender<UserDbo>>();
 		}
 
 		public void Configure(
 			IApplicationBuilder app, IWebHostEnvironment env,
-			RoleManager<IdentityRole> roleManager, UserManager<IdentityUser> userManager, IOptions<AuthData> adminOptions)
+			RoleManager<IdentityRole> roleManager, UserManager<UserDbo> userManager, IOptions<AuthData> adminOptions)
 		{
 			DbFiller.EnsureRolesCreatedAsync(roleManager).Wait();
 			DbFiller.EnsureAdminCreatedAsync(userManager, adminOptions).Wait();

@@ -6,20 +6,20 @@ using System.Threading.Tasks;
 
 namespace WebAppLab.Helpers
 {
-	public class DefaultConfirmEmailSender : IConfirmEmailSender
+	public class DefaultConfirmEmailSender<T> : IConfirmEmailSender<T> where T : IdentityUser
 	{
-		private readonly UserManager<IdentityUser> userManager;
+		private readonly UserManager<T> userManager;
 		private readonly IEmailSender emailSender;
 		private readonly LinkGenerator linkGenerator;
 
-		public DefaultConfirmEmailSender(UserManager<IdentityUser> userManager, IEmailSender emailSender, LinkGenerator linkGenerator)
+		public DefaultConfirmEmailSender(UserManager<T> userManager, IEmailSender emailSender, LinkGenerator linkGenerator)
 		{
 			this.userManager = userManager;
 			this.emailSender = emailSender;
 			this.linkGenerator = linkGenerator;
 		}
 
-		public async Task SendAsync(IdentityUser user, HttpContext httpContext)
+		public async Task SendAsync(T user, HttpContext httpContext)
 		{
 			var code = await userManager.GenerateEmailConfirmationTokenAsync(user);
 			var confirmationUrl = linkGenerator.GetUriByAction(httpContext, "ConfirmEmail", "Auth", new { userId = user.Id, code });

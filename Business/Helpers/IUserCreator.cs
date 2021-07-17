@@ -4,8 +4,8 @@ using System.Threading.Tasks;
 
 namespace WebAppLab.Helpers
 {
-	public interface IUserCreator
+	public interface IUserCreator<in T> where T : IdentityUser
 	{
-		public Task<IdentityResult> CreateAsync(IdentityUser user, string password, string role);
+		public Task<IdentityResult> CreateAsync(T user, string password, string role);
 	}
 }

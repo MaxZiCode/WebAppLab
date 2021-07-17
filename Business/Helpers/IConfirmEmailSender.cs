@@ -5,8 +5,8 @@ using System.Threading.Tasks;
 
 namespace WebAppLab.Helpers
 {
-	public interface IConfirmEmailSender
+	public interface IConfirmEmailSender<in T> where T : IdentityUser
 	{
-		public Task SendAsync(IdentityUser user, HttpContext httpContext);
+		public Task SendAsync(T user, HttpContext httpContext);
 	}
 }

@@ -5,16 +5,16 @@ using System.Threading.Tasks;
 
 namespace WebAppLab.Helpers
 {
-	public class DefaultUserCreator : IUserCreator
+	public class DefaultUserCreator<T> : IUserCreator<T> where T : IdentityUser
 	{
-		private readonly UserManager<IdentityUser> userManager;
+		private readonly UserManager<T> userManager;
 
-		public DefaultUserCreator(UserManager<IdentityUser> userManager)
+		public DefaultUserCreator(UserManager<T> userManager)
 		{
 			this.userManager = userManager;
 		}
 
-		public async Task<IdentityResult> CreateAsync(IdentityUser user, string password, string role)
+		public async Task<IdentityResult> CreateAsync(T user, string password, string role)
 		{
 			var resultCreate = await userManager.CreateAsync(user, password);
 			var resultRole = await userManager.AddToRoleAsync(user, role);
