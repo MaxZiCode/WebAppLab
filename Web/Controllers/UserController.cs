@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 
 using WebAppLab.Data;
 using WebAppLab.Data.Models;
+using WebAppLab.Helpers;
 using WebAppLab.Models;
 
 namespace WebAppLab.Controllers
@@ -19,21 +20,20 @@ namespace WebAppLab.Controllers
 	[ApiController]
 	public class UserController : ControllerBase
 	{
-		private readonly ApplicationDbContext context;
-		private readonly IMapper mapper;
+		private readonly IUserSearcher searcher;
 
-		public UserController(ApplicationDbContext context, IMapper mapper)
+		public UserController(IUserSearcher searcher)
 		{
-			this.context = context;
-			this.mapper = mapper;
+			this.searcher = searcher;
 		}
 
 		[HttpGet]
 		public async Task<ActionResult<User>> Get()
 		{
-			var id = HttpContext.User.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value;
-			var userFromDb = await context.Users.FirstOrDefaultAsync(u => u.Id == id);
-			var user = mapper.Map<UserDbo, User>(userFromDb);
+			var user = await searcher.FindAsync(HttpContext);
+			if (user == null)
+				return NotFound();
+
 			return user;
 		}
 	}

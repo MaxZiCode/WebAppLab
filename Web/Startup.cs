@@ -66,6 +66,8 @@ namespace WebAppLab
 			services.AddTransient<IConfirmEmailSender<UserDbo>, DefaultConfirmEmailSender<UserDbo>>();
 
 			services.AddAutoMapper(config => config.CreateMap<UserDbo, User>());
+
+			services.AddTransient<IUserSearcher, ClaimsUserSearcher>();
 		}
 
 		public void Configure(
