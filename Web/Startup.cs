@@ -11,6 +11,7 @@ using Microsoft.OpenApi.Models;
 using Serilog;
 
 using WebAppLab.Data;
+using WebAppLab.Data.Models;
 using WebAppLab.Helpers;
 using WebAppLab.Infrastructure;
 using WebAppLab.Models;
@@ -63,6 +64,8 @@ namespace WebAppLab
 			services.AddTransient<IPasswordChecker, RegexPasswordChecker>();
 			services.AddTransient<IUserCreator<UserDbo>, DefaultUserCreator<UserDbo>>();
 			services.AddTransient<IConfirmEmailSender<UserDbo>, DefaultConfirmEmailSender<UserDbo>>();
+
+			services.AddAutoMapper(config => config.CreateMap<UserDbo, User>());
 		}
 
 		public void Configure(

@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using WebAppLab.Constants;
+using WebAppLab.Data.Models;
 using WebAppLab.Helpers;
 using WebAppLab.Models;
 

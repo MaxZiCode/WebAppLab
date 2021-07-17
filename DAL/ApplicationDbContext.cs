@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
-using WebAppLab.Models;
+using WebAppLab.Data.Models;
 
 namespace WebAppLab.Data
 {

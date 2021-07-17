@@ -2,7 +2,7 @@
 
 using System;
 
-namespace WebAppLab.Models
+namespace WebAppLab.Data.Models
 {
 	public class UserDbo : IdentityUser
 	{

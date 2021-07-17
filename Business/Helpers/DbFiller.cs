@@ -24,7 +24,7 @@ namespace WebAppLab.Helpers
 			}
 		}
 
-		public static async Task EnsureAdminCreatedAsync<T>(UserManager<T> userManager, IOptions<AuthData> adminOptions) where T: IdentityUser, new()
+		public static async Task EnsureAdminCreatedAsync<T>(UserManager<T> userManager, IOptions<AuthData> adminOptions) where T : IdentityUser, new()
 		{
 			var adminData = adminOptions.Value;
 
