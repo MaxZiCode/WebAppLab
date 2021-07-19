@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-using WebAppLab.Helpers;
+using WebAppLab.Services;
 
 namespace WebAppLab.Infrastructure
 {
@@ -10,7 +10,7 @@ namespace WebAppLab.Infrastructure
 		public static IServiceCollection AddDefaultEmailSender(this IServiceCollection services, IConfiguration configuration)
 		{
 			services.Configure<SmtpSettings>(configuration.GetSection(nameof(SmtpSettings)));
-			services.AddTransient<IEmailSender, DefaultEmailSender>();
+			services.AddTransient<IEmailSender, EmailSender>();
 			return services;
 		}
 	}

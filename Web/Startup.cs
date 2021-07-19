@@ -14,6 +14,7 @@ using WebAppLab.Data;
 using WebAppLab.Helpers;
 using WebAppLab.Infrastructure;
 using WebAppLab.Models;
+using WebAppLab.Services;
 
 namespace WebAppLab
 {
@@ -59,10 +60,8 @@ namespace WebAppLab
 			services.AddDefaultEmailSender(Configuration);
 			services.Configure<AuthData>(Configuration.GetSection("Admin"));
 
-			services.AddTransient<IEmailChecker, RegexEmailChecker>();
-			services.AddTransient<IPasswordChecker, RegexPasswordChecker>();
-			services.AddTransient<IUserCreator, DefaultUserCreator>();
-			services.AddTransient<IConfirmEmailSender, DefaultConfirmEmailSender>();
+			services.AddTransient<IConfirmEmailSender, ConfirmEmailSender>();
+			services.AddScoped<IAuthManager, AuthManager<IdentityUser>>();
 		}
 
 		public void Configure(

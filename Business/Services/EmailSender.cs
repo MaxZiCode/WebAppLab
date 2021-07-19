@@ -1,6 +1,5 @@
 ﻿using MailKit.Net.Smtp;
 
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 using MimeKit;
@@ -9,17 +8,15 @@ using System.Threading.Tasks;
 
 using WebAppLab.Infrastructure;
 
-namespace WebAppLab.Helpers
+namespace WebAppLab.Services
 {
-	public class DefaultEmailSender : IEmailSender
+	public class EmailSender : IEmailSender
 	{
 		private readonly SmtpSettings smtpSettings;
-		private readonly ILogger<DefaultEmailSender> logger;
 
-		public DefaultEmailSender(IOptions<SmtpSettings> smtpSettings, ILogger<DefaultEmailSender> logger)
+		public EmailSender(IOptions<SmtpSettings> smtpSettings)
 		{
 			this.smtpSettings = smtpSettings.Value;
-			this.logger = logger;
 		}
 
 		public async Task SendAsync(string toEmail, string subject, string body)
@@ -38,8 +35,6 @@ namespace WebAppLab.Helpers
 			await client.AuthenticateAsync(smtpSettings.UserName, smtpSettings.Password);
 			await client.SendAsync(message);
 			await client.DisconnectAsync(quit: true);
-
-			logger.LogInformation("Email \'{subject}\' has sended to {email}.", subject, toEmail);
 		}
 	}
 }

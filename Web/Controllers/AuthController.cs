@@ -1,14 +1,13 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
-using System.Linq;
+using System;
 using System.Threading.Tasks;
 
 using WebAppLab.Constants;
-using WebAppLab.Helpers;
 using WebAppLab.Models;
+using WebAppLab.Services;
 
 namespace WebAppLab.Controllers
 {
@@ -17,103 +16,72 @@ namespace WebAppLab.Controllers
 	public class AuthController : ControllerBase
 	{
 		private readonly ILogger<AuthController> logger;
-		private readonly UserManager<IdentityUser> userManager;
-		private readonly SignInManager<IdentityUser> signInManager;
-		private readonly IEmailChecker emailChecker;
-		private readonly IPasswordChecker passwordChecker;
-		private readonly IUserCreator userCreator;
-		private readonly IConfirmEmailSender confirmEmailSender;
+		private readonly IAuthManager authManager;
 
-		public AuthController(ILogger<AuthController> logger, UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager, IEmailChecker emailChecker, IPasswordChecker passwordChecker, IUserCreator userCreator, IConfirmEmailSender confirmEmailSender)
+		public AuthController(ILogger<AuthController> logger, IAuthManager authManager)
 		{
 			this.logger = logger;
-			this.userManager = userManager;
-			this.signInManager = signInManager;
-			this.emailChecker = emailChecker;
-			this.passwordChecker = passwordChecker;
-			this.userCreator = userCreator;
-			this.confirmEmailSender = confirmEmailSender;
+			this.authManager = authManager;
 		}
 
 		[HttpPost("SignUp")]
 		public async Task<IActionResult> SignUp([FromBody] AuthData authData)
 		{
-			const string logMessageFormat = "Unable to sign up a new user {user}. {errors}";
-			bool isEmailCorrect = emailChecker.Check(authData.Email);
-			if (!isEmailCorrect)
+			try
 			{
-				const string emailMessage = "Email is incorrect.";
-				logger.LogWarning(logMessageFormat, authData.Email, emailMessage);
-				return BadRequest(new { errorMessage = emailMessage });
+				await authManager.SignUpAsync(HttpContext, authData.Email, authData.Password, Roles.User);
 			}
-
-			bool isPasswordCorrect = passwordChecker.Check(authData.Password);
-			if (!isPasswordCorrect)
+			catch (ArgumentException ex)
 			{
-				const string passwordMessage = "Password is incorrect.";
-				logger.LogWarning(logMessageFormat, authData.Email, passwordMessage);
-				return BadRequest(new { errorMessage = passwordMessage });
+				return BadRequest(new { errorMessage = ex.Message });
 			}
-
-			var user = new IdentityUser() { UserName = authData.Email, Email = authData.Email };
-			var result = await userCreator.CreateAsync(user, authData.Password, Roles.User);
-			if (result.Succeeded)
+			catch (Exception ex)
 			{
-				logger.LogInformation("New user {user} just signed up", authData.Email);
-				await confirmEmailSender.SendAsync(user, HttpContext);
-				return StatusCode(201);
+				logger.LogWarning(ex.Message);
+				return BadRequest(new { errorMessage = ex.Message });
 			}
-
-			var errorMessage = string.Join(' ', result.Errors.Select(e => e.Description));
-			logger.LogWarning(logMessageFormat, authData.Email, errorMessage);
-			return BadRequest(new { errorMessage });
+			logger.LogInformation("New user {user} just signed up", authData.Email);
+			return StatusCode(201);
 		}
 
 		[HttpPost("SignIn")]
 		public async Task<IActionResult> SignIn([FromBody] AuthData authData)
 		{
-			var result = await signInManager.PasswordSignInAsync(authData.Email, authData.Password, isPersistent: false, lockoutOnFailure: false);
-			if (result.Succeeded)
+			try
 			{
-				logger.LogInformation("User {user} just signed in", authData.Email);
-				return Ok();
+				await authManager.SignInAsync(authData.Email, authData.Password);
 			}
-
-			logger.LogWarning("Unable to sign in a user {user}", authData.Email);
-			return Unauthorized();
+			catch (Exception ex)
+			{
+				logger.LogWarning(ex.Message);
+				return Unauthorized();
+			}
+			return Ok();
 		}
 
 		[Authorize]
 		[HttpPost("SignOut")]
 		public async Task<IActionResult> SignOutPost()
 		{
-			var name = User.Identity.Name;
-			await signInManager.SignOutAsync();
-			logger.LogInformation("User {user} just signed out", name);
+			await authManager.SignOutAsync();
 			return Ok();
 		}
 
 		[HttpGet("ConfirmEmail")]
 		public async Task<IActionResult> ConfirmEmail(string userId, string code)
 		{
-			var user = await userManager.FindByIdAsync(userId);
-			if (user == null)
+			try
 			{
-				logger.LogWarning("Email confirmation warning: a user with id {id} not found", userId);
-				return NotFound();
-			}
+				await authManager.ConfirmEmail(userId, code);
 
-			var result = await userManager.ConfirmEmailAsync(user, code);
-			if (result.Succeeded)
+			}
+			catch (Exception ex)
 			{
-				logger.LogInformation("A user {user} has confirmed own email", user.Email);
-				HttpContext.Response.ContentType = "text/html; charset=utf-8";
-				return Content("Email confirmed!");
+				logger.LogError(ex.Message);
+				return BadRequest(new { errorMessage = ex.Message });
 			}
-
-			var errorMessage = string.Join(' ', result.Errors.Select(e => e.Description));
-			logger.LogWarning("Email {email} confirmation failed: {errors}", user.Email, errorMessage);
-			return BadRequest(new { errorMessage });
+			HttpContext.Response.ContentType = "text/html; charset=utf-8";
+			return Content("Email confirmed!");
 		}
 	}
 }
