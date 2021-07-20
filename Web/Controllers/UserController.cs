@@ -40,7 +40,7 @@ namespace WebAppLab.Controllers
 			if (userFromDb == null)
 				return null;
 
-			var user = mapper.Map<UserDbo, User>(userFromDb);
+			var user = mapper.Map<User>(userFromDb);
 
 			return user;
 		}
@@ -48,6 +48,14 @@ namespace WebAppLab.Controllers
 		[HttpPut]
 		public async Task<ActionResult<User>> Put([FromBody] User user)
 		{
+			bool isEmailCorrect = CheckUtility.CheckEmail(user.Email);
+			if (!isEmailCorrect)
+				return BadRequest();
+
+			bool isPhoneNumberCorrect = CheckUtility.CheckPhoneNumber(user.PhoneNumber);
+			if (!isPhoneNumberCorrect)
+				return BadRequest();
+
 			var id = HttpContext.User?.Claims?.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier).Value;
 
 			var userDbo = await context.Users.FirstOrDefaultAsync(u => u.Id == id);
