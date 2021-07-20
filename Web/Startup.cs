@@ -61,7 +61,7 @@ namespace WebAppLab
 			services.Configure<AuthData>(Configuration.GetSection("Admin"));
 
 			services.AddTransient<IConfirmEmailSender, ConfirmEmailSender>();
-			services.AddScoped<IAuthManager, AuthManager<IdentityUser>>();
+			services.AddScoped<IAuthManager, AuthManager>();
 		}
 
 		public void Configure(

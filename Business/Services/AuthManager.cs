@@ -10,13 +10,13 @@ using WebAppLab.Helpers;
 
 namespace WebAppLab.Services
 {
-	public class AuthManager<T> : IAuthManager where T : IdentityUser, new()
+	public class AuthManager : IAuthManager
 	{
-		private readonly UserManager<T> userManager;
-		private readonly SignInManager<T> signInManager;
+		private readonly UserManager<IdentityUser> userManager;
+		private readonly SignInManager<IdentityUser> signInManager;
 		private readonly IConfirmEmailSender confirmEmailSender;
 
-		public AuthManager(UserManager<T> userManager, SignInManager<T> signInManager, IConfirmEmailSender confirmEmailSender)
+		public AuthManager(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager, IConfirmEmailSender confirmEmailSender)
 		{
 			this.userManager = userManager;
 			this.signInManager = signInManager;
@@ -37,7 +37,7 @@ namespace WebAppLab.Services
 				throw new ArgumentException("Password is incorrect.");
 			}
 
-			var user = new T() { Email = email, UserName = email };
+			var user = new IdentityUser() { Email = email, UserName = email };
 
 			var resultCreate = await userManager.CreateAsync(user, password);
 			if (!resultCreate.Succeeded)
