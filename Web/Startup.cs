@@ -47,8 +47,6 @@ namespace WebAppLab
 				.AddDefaultTokenProviders();
 			services.AddDatabaseDeveloperPageExceptionFilter();
 
-			services.AddControllers();
-
 			services.AddSwaggerGen(c =>
 				c.SwaggerDoc("v1", new OpenApiInfo
 				{
@@ -65,6 +63,8 @@ namespace WebAppLab
 			services.AddScoped<IAuthManager, AuthManager>();
 
 			services.AddAutoMapper(config => config.CreateMap<UserDbo, User>().ReverseMap());
+
+			services.AddControllers().AddNewtonsoftJson();
 		}
 
 		public void Configure(
