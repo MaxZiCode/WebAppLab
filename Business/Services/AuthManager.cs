@@ -1,11 +1,11 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
+using WebAppLab.Data.Models;
 using WebAppLab.Helpers;
 using WebAppLab.Models;
 
@@ -13,11 +13,11 @@ namespace WebAppLab.Services
 {
 	public class AuthManager : IAuthManager
 	{
-		private readonly UserManager<IdentityUser> userManager;
-		private readonly SignInManager<IdentityUser> signInManager;
+		private readonly UserManager<UserDbo> userManager;
+		private readonly SignInManager<UserDbo> signInManager;
 		private readonly IConfirmEmailSender confirmEmailSender;
 
-		public AuthManager(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager, IConfirmEmailSender confirmEmailSender)
+		public AuthManager(UserManager<UserDbo> userManager, SignInManager<UserDbo> signInManager, IConfirmEmailSender confirmEmailSender)
 		{
 			this.userManager = userManager;
 			this.signInManager = signInManager;
@@ -34,7 +34,7 @@ namespace WebAppLab.Services
 			if (!isPasswordCorrect)
 				return AuthResult.FromFail("Password is incorrect.");
 
-			var user = new IdentityUser() { Email = email, UserName = email };
+			var user = new UserDbo() { Email = email, UserName = email };
 
 			var resultCreate = await userManager.CreateAsync(user, password);
 			if (!resultCreate.Succeeded)
