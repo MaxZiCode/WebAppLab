@@ -5,11 +5,16 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 
 using Serilog;
 
 using WebAppLab.Data;
+using WebAppLab.Helpers;
+using WebAppLab.Infrastructure;
+using WebAppLab.Models;
+using WebAppLab.Services;
 
 namespace WebAppLab
 {
@@ -25,8 +30,20 @@ namespace WebAppLab
 		public void ConfigureServices(IServiceCollection services)
 		{
 			services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"), b => b.MigrationsAssembly("Web")));
-			services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
-				.AddEntityFrameworkStores<ApplicationDbContext>();
+			services.AddIdentity<IdentityUser, IdentityRole>(options =>
+				{
+					options.User.AllowedUserNameCharacters = string.Empty;
+					options.User.RequireUniqueEmail = false;
+
+					options.Password.RequireDigit = false;
+					options.Password.RequiredLength = 0;
+					options.Password.RequiredUniqueChars = 0;
+					options.Password.RequireLowercase = false;
+					options.Password.RequireNonAlphanumeric = false;
+					options.Password.RequireUppercase = false;
+				})
+				.AddEntityFrameworkStores<ApplicationDbContext>()
+				.AddDefaultTokenProviders();
 			services.AddDatabaseDeveloperPageExceptionFilter();
 
 			services.AddControllers();
@@ -39,10 +56,21 @@ namespace WebAppLab
 					Description = "An API of my internship project."
 				})
 			);
+
+			services.AddDefaultEmailSender(Configuration);
+			services.Configure<AuthData>(Configuration.GetSection("Admin"));
+
+			services.AddTransient<IConfirmEmailSender, ConfirmEmailSender>();
+			services.AddScoped<IAuthManager, AuthManager>();
 		}
 
-		public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+		public void Configure(
+			IApplicationBuilder app, IWebHostEnvironment env,
+			RoleManager<IdentityRole> roleManager, UserManager<IdentityUser> userManager, IOptions<AuthData> adminOptions)
 		{
+			DbFiller.EnsureRolesCreatedAsync(roleManager).Wait();
+			DbFiller.EnsureAdminCreatedAsync(userManager, adminOptions).Wait();
+
 			if (env.IsDevelopment())
 			{
 				app.UseSerilogRequestLogging();

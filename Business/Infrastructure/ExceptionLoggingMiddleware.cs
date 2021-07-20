@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
 
-namespace WebAppLab
+namespace WebAppLab.Infrastructure
 {
 	public class ExceptionLoggingMiddleware
 	{
