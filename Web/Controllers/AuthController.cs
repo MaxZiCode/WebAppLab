@@ -27,19 +27,10 @@ namespace WebAppLab.Controllers
 		[HttpPost("SignUp")]
 		public async Task<IActionResult> SignUp([FromBody] AuthData authData)
 		{
-			try
-			{
-				await authManager.SignUpAsync(HttpContext, authData.Email, authData.Password, Roles.User);
-			}
-			catch (ArgumentException ex)
-			{
-				return BadRequest(new { errorMessage = ex.Message });
-			}
-			catch (Exception ex)
-			{
-				logger.LogWarning(ex.Message);
-				return BadRequest(new { errorMessage = ex.Message });
-			}
+			var result = await authManager.SignUpAsync(HttpContext, authData.Email, authData.Password, Roles.User);
+			if (!result.Succeeded)
+				return BadRequest(new { errorMessage = result.FailMessage });
+
 			logger.LogInformation("New user {user} just signed up", authData.Email);
 			return StatusCode(201);
 		}
@@ -47,13 +38,11 @@ namespace WebAppLab.Controllers
 		[HttpPost("SignIn")]
 		public async Task<IActionResult> SignIn([FromBody] AuthData authData)
 		{
-			try
+			var result = await authManager.SignInAsync(authData.Email, authData.Password);
+
+			if (!result.Succeeded)
 			{
-				await authManager.SignInAsync(authData.Email, authData.Password);
-			}
-			catch (Exception ex)
-			{
-				logger.LogWarning(ex.Message);
+				logger.LogWarning(result.FailMessage);
 				return Unauthorized();
 			}
 			return Ok();
@@ -63,25 +52,23 @@ namespace WebAppLab.Controllers
 		[HttpPost("SignOut")]
 		public async Task<IActionResult> SignOutPost()
 		{
-			await authManager.SignOutAsync();
+			var result = await authManager.SignOutAsync();
+			if (!result.Succeeded)
+				return BadRequest(new { errorMessage = result.FailMessage });
+
 			return Ok();
 		}
 
 		[HttpGet("ConfirmEmail")]
 		public async Task<IActionResult> ConfirmEmail(string userId, string code)
 		{
-			try
+			var result = await authManager.ConfirmEmail(userId, code);
+			if (!result.Succeeded)
 			{
-				await authManager.ConfirmEmail(userId, code);
-
+				logger.LogError(result.FailMessage);
+				return BadRequest(new { errorMessage = result.FailMessage });
 			}
-			catch (Exception ex)
-			{
-				logger.LogError(ex.Message);
-				return BadRequest(new { errorMessage = ex.Message });
-			}
-			HttpContext.Response.ContentType = "text/html; charset=utf-8";
-			return Content("Email confirmed!");
+			return Ok();
 		}
 	}
 }
