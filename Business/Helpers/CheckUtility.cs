@@ -17,8 +17,17 @@ namespace WebAppLab.Helpers
 			RegexOptions.Compiled | RegexOptions.CultureInvariant,
 			TimeSpan.FromMilliseconds(128));
 
+		private static readonly Regex regexPhoneNumber = new(
+			// Examples: +375 (29) 278-75-67
+			//			 375292787567
+			@"^\+?[0-9]{3}\s?\(?[0-9]{2}\)?\s?[0-9]{3}[-\s]?[0-9]{2}[-\s]?[0-9]{2}$",
+			RegexOptions.Compiled | RegexOptions.CultureInvariant,
+			TimeSpan.FromMilliseconds(128));
+
 		public static bool CheckPassword(string password) => regexPassword.IsMatch(password);
 
 		public static bool CheckEmail(string email) => regexEmail.IsMatch(email);
+
+		public static bool CheckPhoneNumber(string phoneNumber) => regexPhoneNumber.IsMatch(phoneNumber);
 	}
 }
