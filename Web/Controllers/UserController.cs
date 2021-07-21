@@ -1,18 +1,10 @@
-﻿using AutoMapper;
-
+﻿
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.JsonPatch;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc;
 
-using System.Linq;
-using System.Security.Claims;
 using System.Threading.Tasks;
 
-using WebAppLab.Data;
-using WebAppLab.Data.Models;
-using WebAppLab.Helpers;
 using WebAppLab.Models;
 using WebAppLab.Services;
 
