@@ -65,6 +65,8 @@ namespace WebAppLab
 			services.AddAutoMapper(config => config.CreateMap<UserDbo, User>().ReverseMap());
 
 			services.AddControllers().AddNewtonsoftJson();
+
+			services.AddScoped<IUserChanger, UserChanger>();
 		}
 
 		public void Configure(
