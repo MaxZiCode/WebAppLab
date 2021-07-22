@@ -23,20 +23,20 @@ namespace WebAppLab.Controllers
 		}
 
 		[HttpGet]
-		public async Task<ActionResult<User>> Get() => await userChanger.GetUserAsync(HttpContext.User);
+		public async Task<ActionResult<UserViewModel>> GetUser() => await userChanger.GetUserAsync(HttpContext.User);
 
 		[HttpPut]
-		public async Task<ActionResult<User>> Put([FromBody] User user)
+		public async Task<ActionResult<UserViewModel>> ChangeUser([FromBody] UserViewModel user)
 		{
 			var result = await userChanger.ChangeAsync(HttpContext.User, user);
 			if (!result.Succeeded)
-				return BadRequest(new { errorMessage = result.Error });
+				return BadRequest(new { errorMessage = result.FailMessage });
 
-			return result.User;
+			return result.Value;
 		}
 
 		[HttpPatch("password")]
-		public async Task<IActionResult> PatchPassword([FromBody] JsonPatchDocument<UserPassword> jsonPatch)
+		public async Task<IActionResult> ChangePassword([FromBody] JsonPatchDocument<UserPassword> jsonPatch)
 		{
 			UserPassword userPassword = new();
 			jsonPatch.ApplyTo(userPassword);
