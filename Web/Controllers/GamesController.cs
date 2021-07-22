@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 
 using WebAppLab.Data;
 using WebAppLab.Data.Models;
+using WebAppLab.Services;
 
 namespace WebAppLab.Controllers
 {
@@ -17,23 +18,17 @@ namespace WebAppLab.Controllers
 	[ApiController]
 	public class GamesController : ControllerBase
 	{
-		private readonly ApplicationDbContext context;
+		private readonly IProductManager productManager;
 
-		public GamesController(ApplicationDbContext context)
+		public GamesController(IProductManager productManager)
 		{
-			this.context = context;
+			this.productManager = productManager;
 		}
 
 		[HttpGet("topPlatforms")]
-		public IEnumerable<string> GetTopPlatforms()
-		{
-			return context.Products.AsParallel().GroupBy(p => p.Platform).OrderByDescending(g => g.Count()).Select(g => g.Key.ToString()).Take(3);
-		}
+		public IEnumerable<string> GetTopPlatforms() => productManager.GetTop(3);
 
 		[HttpGet("search")]
-		public IEnumerable<Product> SearchProducts(string term, int limit, int offset)
-		{
-			return context.Products.AsParallel().Where(p => p.Name.Contains(term, StringComparison.OrdinalIgnoreCase)).Skip(offset).Take(limit);
-		}
+		public IEnumerable<Product> SearchProducts(string term, int limit, int offset) => productManager.FindByName(term, limit, offset);
 	}
 }
