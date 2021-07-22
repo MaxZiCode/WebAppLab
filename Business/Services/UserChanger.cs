@@ -18,56 +18,56 @@ namespace WebAppLab.Services
 	{
 		private readonly ApplicationDbContext context;
 		private readonly IMapper mapper;
-		private readonly UserManager<UserDbo> userManager;
+		private readonly UserManager<User> userManager;
 
-		public UserChanger(ApplicationDbContext context, IMapper mapper, UserManager<UserDbo> userManager)
+		public UserChanger(ApplicationDbContext context, IMapper mapper, UserManager<User> userManager)
 		{
 			this.context = context;
 			this.mapper = mapper;
 			this.userManager = userManager;
 		}
 
-		public async Task<User> GetUserAsync(ClaimsPrincipal claimsPrincipal)
+		public async Task<UserViewModel> GetUserAsync(ClaimsPrincipal claimsPrincipal)
 		{
 			var userDbo = await GetUserFromDatabaseAsync(claimsPrincipal);
-			var user = mapper.Map<User>(userDbo);
+			var user = mapper.Map<UserViewModel>(userDbo);
 			return user;
 		}
 
-		public async Task<UserChangeResult> ChangeAsync(ClaimsPrincipal claimsPrincipal, User user)
+		public async Task<ValueResult<UserViewModel>> ChangeAsync(ClaimsPrincipal claimsPrincipal, UserViewModel user)
 		{
 			var userDboTask = GetUserFromDatabaseAsync(claimsPrincipal);
 
 			bool isEmailCorrect = CheckUtility.CheckEmail(user.Email);
 			if (!isEmailCorrect)
-				return UserChangeResult.FromError("Email is incorrect");
+				return ValueResult<UserViewModel>.FromFail("Email is incorrect");
 
 			bool isPhoneNumberCorrect = CheckUtility.CheckPhoneNumber(user.PhoneNumber);
 			if (!isPhoneNumberCorrect)
-				return UserChangeResult.FromError("Phone number is incorrect");
+				return ValueResult<UserViewModel>.FromFail("Phone number is incorrect");
 
 			var userDbo = await userDboTask;
 			mapper.Map(user, userDbo);
 			await context.SaveChangesAsync();
 
 			var changedUser = await GetUserAsync(claimsPrincipal);
-			return UserChangeResult.FromUser(changedUser);
+			return ValueResult<UserViewModel>.FromValue(changedUser);
 		}
 
-		public async Task<AuthResult> ChangePasswordAsync(ClaimsPrincipal claimsPrincipal, string newPassword)
+		public async Task<Result> ChangePasswordAsync(ClaimsPrincipal claimsPrincipal, string newPassword)
 		{
 			bool isPasswordCorrect = CheckUtility.CheckPassword(newPassword);
 			if (!isPasswordCorrect)
-				return AuthResult.FromFail("Password is incorrect.");
+				return Result.FromFail("Password is incorrect.");
 
 			var userDbo = await GetUserFromDatabaseAsync(claimsPrincipal);
 			var hashedPassword = userManager.PasswordHasher.HashPassword(userDbo, newPassword);
 			userDbo.PasswordHash = hashedPassword;
 			await context.SaveChangesAsync();
-			return AuthResult.Success;
+			return Result.Success;
 		}
 
-		private async Task<UserDbo> GetUserFromDatabaseAsync(ClaimsPrincipal claimsPrincipal)
+		private async Task<User> GetUserFromDatabaseAsync(ClaimsPrincipal claimsPrincipal)
 		{
 			var id = claimsPrincipal.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value;
 			var userDbo = await context.Users.FirstAsync(u => u.Id == id);

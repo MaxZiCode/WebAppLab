@@ -31,7 +31,7 @@ namespace WebAppLab
 		public void ConfigureServices(IServiceCollection services)
 		{
 			services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"), b => b.MigrationsAssembly("Web")));
-			services.AddIdentity<UserDbo, IdentityRole>(options =>
+			services.AddIdentity<User, IdentityRole>(options =>
 				{
 					options.User.AllowedUserNameCharacters = string.Empty;
 					options.User.RequireUniqueEmail = false;
@@ -62,7 +62,7 @@ namespace WebAppLab
 			services.AddTransient<IConfirmEmailSender, ConfirmEmailSender>();
 			services.AddScoped<IAuthManager, AuthManager>();
 
-			services.AddAutoMapper(config => config.CreateMap<UserDbo, User>().ReverseMap());
+			services.AddAutoMapper(config => config.CreateMap<User, UserViewModel>().ReverseMap());
 
 			services.AddControllers().AddNewtonsoftJson();
 
@@ -71,7 +71,7 @@ namespace WebAppLab
 
 		public void Configure(
 			IApplicationBuilder app, IWebHostEnvironment env,
-			RoleManager<IdentityRole> roleManager, UserManager<UserDbo> userManager, IOptions<AuthData> adminOptions)
+			RoleManager<IdentityRole> roleManager, UserManager<User> userManager, IOptions<AuthData> adminOptions)
 		{
 			DbFiller.EnsureRolesCreatedAsync(roleManager).Wait();
 			DbFiller.EnsureAdminCreatedAsync(userManager, adminOptions).Wait();
