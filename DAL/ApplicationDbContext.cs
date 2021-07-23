@@ -19,7 +19,9 @@ namespace WebAppLab.Data
 		{
 			base.OnModelCreating(builder);
 
-			builder.Entity<Product>().Property(p => p.Platform).HasConversion<int>();
+			var productBuilder = builder.Entity<Product>();
+			productBuilder.Property(p => p.Platform).HasConversion<int>();
+			productBuilder.Property(p => p.Rating).HasConversion<int>();
 		}
 	}
 }

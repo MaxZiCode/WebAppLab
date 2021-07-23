@@ -29,5 +29,14 @@ namespace WebAppLab.Data.Models
 		[Required]
 		[Range(0, 100)]
 		public int TotalRating { get; set; }
+
+		public string Genre { get; set; }
+		public Rating Rating { get; set; }
+		public string Logo { get; set; }
+		public string Background { get; set; }
+
+		[Column(TypeName = "Money")]
+		public decimal Price { get; set; }
+		public int Count { get; set; }
 	}
 }
