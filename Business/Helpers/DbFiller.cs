@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using WebAppLab.Constants;
+using WebAppLab.Data.Models;
 using WebAppLab.Models;
 
 namespace WebAppLab.Helpers
@@ -24,14 +25,14 @@ namespace WebAppLab.Helpers
 			}
 		}
 
-		public static async Task EnsureAdminCreatedAsync(UserManager<IdentityUser> userManager, IOptions<AuthData> adminOptions)
+		public static async Task EnsureAdminCreatedAsync(UserManager<User> userManager, IOptions<AuthData> adminOptions)
 		{
 			var adminData = adminOptions.Value;
 
 			var user = await userManager.FindByEmailAsync(adminData.Email);
 			if (user == null)
 			{
-				var admin = new IdentityUser() { Email = adminData.Email, UserName = adminData.Email };
+				var admin = new User() { Email = adminData.Email, UserName = adminData.Email };
 				await userManager.CreateAsync(admin, adminData.Password);
 				await userManager.AddToRoleAsync(admin, Roles.Admin);
 			}

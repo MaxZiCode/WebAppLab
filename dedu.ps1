@@ -1,1 +1,0 @@
-dotnet ef database update -p Web/Web.csproj

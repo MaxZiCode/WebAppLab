@@ -11,6 +11,7 @@ using Microsoft.OpenApi.Models;
 using Serilog;
 
 using WebAppLab.Data;
+using WebAppLab.Data.Models;
 using WebAppLab.Helpers;
 using WebAppLab.Infrastructure;
 using WebAppLab.Models;
@@ -29,8 +30,8 @@ namespace WebAppLab
 
 		public void ConfigureServices(IServiceCollection services)
 		{
-			services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"), b => b.MigrationsAssembly("Web")));
-			services.AddIdentity<IdentityUser, IdentityRole>(options =>
+			services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+			services.AddIdentity<User, IdentityRole>(options =>
 				{
 					options.User.AllowedUserNameCharacters = string.Empty;
 					options.User.RequireUniqueEmail = false;
@@ -46,8 +47,6 @@ namespace WebAppLab
 				.AddDefaultTokenProviders();
 			services.AddDatabaseDeveloperPageExceptionFilter();
 
-			services.AddControllers();
-
 			services.AddSwaggerGen(c =>
 				c.SwaggerDoc("v1", new OpenApiInfo
 				{
@@ -62,11 +61,17 @@ namespace WebAppLab
 
 			services.AddTransient<IConfirmEmailSender, ConfirmEmailSender>();
 			services.AddScoped<IAuthManager, AuthManager>();
+
+			services.AddAutoMapper(config => config.CreateMap<User, UserViewModel>().ReverseMap());
+
+			services.AddControllers().AddNewtonsoftJson();
+
+			services.AddScoped<IUserChanger, UserChanger>();
 		}
 
 		public void Configure(
 			IApplicationBuilder app, IWebHostEnvironment env,
-			RoleManager<IdentityRole> roleManager, UserManager<IdentityUser> userManager, IOptions<AuthData> adminOptions)
+			RoleManager<IdentityRole> roleManager, UserManager<User> userManager, IOptions<AuthData> adminOptions)
 		{
 			DbFiller.EnsureRolesCreatedAsync(roleManager).Wait();
 			DbFiller.EnsureAdminCreatedAsync(userManager, adminOptions).Wait();
