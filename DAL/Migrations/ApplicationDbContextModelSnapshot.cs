@@ -165,6 +165,9 @@ namespace WebAppLab.Data.Migrations
                     b.Property<DateTime>("DateCreated")
                         .HasColumnType("Date");
 
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("Date");
+
                     b.Property<string>("Genre")
                         .HasColumnType("nvarchar(max)");
 

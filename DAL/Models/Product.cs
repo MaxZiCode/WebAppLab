@@ -38,5 +38,9 @@ namespace WebAppLab.Data.Models
 		[Column(TypeName = "Money")]
 		public decimal Price { get; set; }
 		public int Count { get; set; }
+
+		[DataType(DataType.Date)]
+		[Column(TypeName = "Date")]
+		public DateTime? DeletedAt { get; set; }
 	}
 }

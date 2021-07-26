@@ -62,7 +62,11 @@ namespace WebAppLab
 			services.AddTransient<IConfirmEmailSender, ConfirmEmailSender>();
 			services.AddScoped<IAuthManager, AuthManager>();
 
-			services.AddAutoMapper(config => config.CreateMap<UserDbo, User>().ReverseMap());
+			services.AddAutoMapper(config =>
+			{
+				config.CreateMap<UserDbo, User>().ReverseMap();
+				config.CreateMap<Product, ProductViewModel>().ReverseMap();
+			});
 
 			services.AddControllers().AddNewtonsoftJson();
 
