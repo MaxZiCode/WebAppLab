@@ -17,6 +17,8 @@ using WebAppLab.Infrastructure;
 using WebAppLab.Models;
 using WebAppLab.Services;
 
+using CloudinaryDotNet;
+
 namespace WebAppLab
 {
 	public class Startup
@@ -72,6 +74,8 @@ namespace WebAppLab
 
 			services.AddScoped<IUserChanger, UserChanger>();
 			services.AddScoped<IProductManager, ProductManager>();
+
+			services.AddCloudinary(Configuration);
 		}
 
 		public void Configure(

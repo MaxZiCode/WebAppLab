@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using Newtonsoft.Json;
 using System.Threading.Tasks;
 
 using Microsoft.AspNetCore.Authorization;
@@ -16,6 +16,9 @@ using WebAppLab.Constants;
 using Microsoft.Extensions.Logging;
 using AutoMapper;
 using WebAppLab.Data.Models;
+using CloudinaryDotNet;
+using CloudinaryDotNet.Actions;
+using System.IO;
 
 namespace WebAppLab.Controllers
 {
@@ -26,12 +29,14 @@ namespace WebAppLab.Controllers
 		private readonly ApplicationDbContext context;
 		private readonly IProductManager productManager;
 		private readonly IMapper mapper;
+		private readonly Cloudinary cloudinary;
 
-		public GamesController(ApplicationDbContext context, IProductManager productManager, IMapper mapper)
+		public GamesController(ApplicationDbContext context, IProductManager productManager, IMapper mapper, Cloudinary cloudinary)
 		{
 			this.context = context;
 			this.productManager = productManager;
 			this.mapper = mapper;
+			this.cloudinary = cloudinary;
 		}
 
 		[HttpGet("topPlatforms")]
@@ -52,23 +57,47 @@ namespace WebAppLab.Controllers
 
 		[Authorize(Roles = Roles.Admin)]
 		[HttpPost]
-		public async Task<ActionResult<ProductViewModel>> CreateProduct([FromBody] ProductViewModel productView)
+		public async Task<ActionResult<ProductViewModel>> CreateProduct([FromForm] string product, [FromForm] IFormFile logo, [FromForm] IFormFile background)
 		{
-			var product = mapper.Map<Product>(productView);
-			await context.Products.AddAsync(product);
+			var productView = JsonConvert.DeserializeObject<ProductViewModel>(product);
+			var productData = mapper.Map<Product>(productView);
+			if (logo != null)
+			{
+				var result = await UploadImage(logo);
+				productData.Logo = result.Url.AbsoluteUri;
+			}
+			if (background != null)
+			{
+				var result = await UploadImage(background);
+				productData.Background = result.Url.AbsoluteUri;
+			}
+
+			await context.Products.AddAsync(productData);
 			await context.SaveChangesAsync();
-			var createdProduct = await FindProductViewAsync(product.Id);
+			var createdProduct = await FindProductViewAsync(productData.Id);
 			return StatusCode(201, createdProduct);
 		}
 
 		[Authorize(Roles = Roles.Admin)]
 		[HttpPut]
-		public async Task<ActionResult<ProductViewModel>> UpdateProduct([FromBody] ProductViewModel productView)
+		public async Task<ActionResult<ProductViewModel>> UpdateProduct([FromForm] string product, [FromForm] IFormFile logo, [FromForm] IFormFile background)
 		{
-			var product = mapper.Map<Product>(productView);
-			context.Update(product);
+			var productView = JsonConvert.DeserializeObject<ProductViewModel>(product);
+			var productData = mapper.Map<Product>(productView);
+			if (logo != null)
+			{
+				var result = await UploadImage(logo);
+				productData.Logo = result.Url.AbsoluteUri;
+			}
+			if (background != null)
+			{
+				var result = await UploadImage(background);
+				productData.Background = result.Url.AbsoluteUri;
+			}
+
+			context.Update(productData);
 			await context.SaveChangesAsync();
-			return await FindProductViewAsync(product.Id);
+			return await FindProductViewAsync(productData.Id);
 		}
 
 		[Authorize(Roles = Roles.Admin)]
@@ -83,6 +112,17 @@ namespace WebAppLab.Controllers
 			await context.SaveChangesAsync();
 
 			return NoContent();
+		}
+
+		private async Task<ImageUploadResult> UploadImage(IFormFile file)
+		{
+			using var stream = file.OpenReadStream();
+			ImageUploadParams imageUploadParams = new()
+			{
+				File = new(file.FileName, stream),
+				Folder = @"WebAppLab/Products"
+			};
+			return await cloudinary.UploadAsync(imageUploadParams);
 		}
 
 		private async Task<ProductViewModel> FindProductViewAsync(Guid id)
