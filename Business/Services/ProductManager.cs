@@ -18,13 +18,13 @@ namespace WebAppLab.Services
 			this.context = context;
 		}
 
-		public IEnumerable<string> GetTop(int count)
+		public IEnumerable<Platforms> GetTop(int count)
 		{
 			return context.Products
 				.AsParallel()
 				.GroupBy(p => p.Platform)
 				.OrderByDescending(g => g.Count())
-				.Select(g => g.Key.ToString())
+				.Select(g => g.Key)
 				.Take(count);
 		}
 
