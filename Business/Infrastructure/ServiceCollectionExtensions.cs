@@ -19,10 +19,10 @@ namespace WebAppLab.Infrastructure
 		{
 			var settings = configuration.GetSection(nameof(CloudinarySettings)).Get<CloudinarySettings>();
 			Account account = new(settings.CloudName, settings.ApiKey, settings.ApiSecret);
-			var cloudinary = new Cloudinary(account);
-			cloudinary.Api.Secure = true;
 
-			services.AddSingleton(cloudinary);
+			services.AddSingleton(account);
+			services.AddTransient<Cloudinary>();
+			services.AddTransient<IImageUploader, ImageUploader>();
 
 			return services;
 		}

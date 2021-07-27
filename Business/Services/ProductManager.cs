@@ -22,13 +22,13 @@ namespace WebAppLab.Services
 	{
 		private readonly ApplicationDbContext context;
 		private readonly IMapper mapper;
-		private readonly Cloudinary cloudinary;
+		private readonly IImageUploader imageUploader;
 
-		public ProductManager(ApplicationDbContext context, IMapper mapper, Cloudinary cloudinary)
+		public ProductManager(ApplicationDbContext context, IMapper mapper, IImageUploader imageUploader)
 		{
 			this.context = context;
 			this.mapper = mapper;
-			this.cloudinary = cloudinary;
+			this.imageUploader = imageUploader;
 		}
 
 		public IEnumerable<Platforms> GetTop(int count)
@@ -77,11 +77,13 @@ namespace WebAppLab.Services
 				(logo, s => product.Logo = s),
 				(background,  s => product.Background = s)
 			},
-			async item =>
+			item =>
 			{
 				if (item.File != null)
 				{
-					var link = await UploadImageAsync(item.File);
+					var fileName = item.File.FileName;
+					using var stream = item.File.OpenReadStream();
+					var link = imageUploader.Upload(item.File.FileName, stream);
 					item.Action(link);
 				}
 			});
@@ -104,18 +106,6 @@ namespace WebAppLab.Services
 		private async Task<Product> FindInDbAsync(Guid id)
 		{
 			return await context.Products.FindAsync(id);
-		}
-
-		private async Task<string> UploadImageAsync(IFormFile file)
-		{
-			using var stream = file.OpenReadStream();
-			ImageUploadParams imageUploadParams = new()
-			{
-				File = new(file.FileName, stream),
-				Folder = @"WebAppLab/Products"
-			};
-			var result = await cloudinary.UploadAsync(imageUploadParams);
-			return result.Url.AbsoluteUri;
 		}
 
 		private ProductViewModel ProductToView(Product product) => mapper.Map<ProductViewModel>(product);
