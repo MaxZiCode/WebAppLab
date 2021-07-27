@@ -1,24 +1,15 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using Newtonsoft.Json;
 using System.Threading.Tasks;
 
-using Microsoft.AspNetCore.Authorization;
-using WebAppLab.Data;
+using WebAppLab.Constants;
+using WebAppLab.Data.Models;
 using WebAppLab.Models;
 using WebAppLab.Services;
-using WebAppLab.Constants;
-using Microsoft.Extensions.Logging;
-using AutoMapper;
-using WebAppLab.Data.Models;
-using CloudinaryDotNet;
-using CloudinaryDotNet.Actions;
-using System.IO;
 
 namespace WebAppLab.Controllers
 {

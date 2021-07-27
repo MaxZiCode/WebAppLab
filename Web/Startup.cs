@@ -17,8 +17,6 @@ using WebAppLab.Infrastructure;
 using WebAppLab.Models;
 using WebAppLab.Services;
 
-using CloudinaryDotNet;
-
 namespace WebAppLab
 {
 	public class Startup

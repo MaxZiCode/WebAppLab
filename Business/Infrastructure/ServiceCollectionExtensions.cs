@@ -1,8 +1,9 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using CloudinaryDotNet;
+
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 using WebAppLab.Services;
-using CloudinaryDotNet;
 
 namespace WebAppLab.Infrastructure
 {
