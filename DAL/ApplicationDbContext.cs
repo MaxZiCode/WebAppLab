@@ -6,7 +6,7 @@ using WebAppLab.Data.Models;
 
 namespace WebAppLab.Data
 {
-	public class ApplicationDbContext : IdentityDbContext<UserDbo, IdentityRole, string>
+	public class ApplicationDbContext : IdentityDbContext<User, IdentityRole, string>
 	{
 		public DbSet<Product> Products { get; set; }
 

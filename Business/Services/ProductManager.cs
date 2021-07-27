@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 using WebAppLab.Data;
 using WebAppLab.Models;
+using WebAppLab.Data.Models;
 
 namespace WebAppLab.Services
 {
@@ -22,13 +23,13 @@ namespace WebAppLab.Services
 			this.mapper = mapper;
 		}
 
-		public IEnumerable<string> GetTop(int count)
+		public IEnumerable<Platforms> GetTop(int count)
 		{
 			return context.Products
 				.AsParallel()
 				.GroupBy(p => p.Platform)
 				.OrderByDescending(g => g.Count())
-				.Select(g => g.Key.ToString())
+				.Select(g => g.Key)
 				.Take(count);
 		}
 

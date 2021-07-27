@@ -40,7 +40,7 @@ namespace WebAppLab.Controllers
 		}
 
 		[HttpGet("topPlatforms")]
-		public IEnumerable<string> GetTopPlatforms() => productManager.GetTop(3);
+		public IEnumerable<Platforms> GetTopPlatforms() => productManager.GetTop(3);
 
 		[HttpGet("search")]
 		public IEnumerable<ProductViewModel> SearchProducts(string term, int limit, int offset) => productManager.FindByName(term, limit, offset);

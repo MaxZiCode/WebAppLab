@@ -33,7 +33,7 @@ namespace WebAppLab
 		public void ConfigureServices(IServiceCollection services)
 		{
 			services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
-			services.AddIdentity<UserDbo, IdentityRole>(options =>
+			services.AddIdentity<User, IdentityRole>(options =>
 				{
 					options.User.AllowedUserNameCharacters = string.Empty;
 					options.User.RequireUniqueEmail = false;
@@ -66,7 +66,7 @@ namespace WebAppLab
 
 			services.AddAutoMapper(config =>
 			{
-				config.CreateMap<UserDbo, User>().ReverseMap();
+				config.CreateMap<User, UserViewModel>().ReverseMap();
 				config.CreateMap<Product, ProductViewModel>().ReverseMap();
 			});
 
@@ -80,7 +80,7 @@ namespace WebAppLab
 
 		public void Configure(
 			IApplicationBuilder app, IWebHostEnvironment env,
-			RoleManager<IdentityRole> roleManager, UserManager<UserDbo> userManager, IOptions<AuthData> adminOptions)
+			RoleManager<IdentityRole> roleManager, UserManager<User> userManager, IOptions<AuthData> adminOptions)
 		{
 			DbFiller.EnsureRolesCreatedAsync(roleManager).Wait();
 			DbFiller.EnsureAdminCreatedAsync(userManager, adminOptions).Wait();
