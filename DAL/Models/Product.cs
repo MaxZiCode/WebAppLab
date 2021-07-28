@@ -1,5 +1,6 @@
-﻿
-using System;
+﻿using System;
+
+using WebAppLab.Data.Constants;
 
 namespace WebAppLab.Data.Models
 {

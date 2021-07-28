@@ -8,8 +8,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using WebAppLab.Data;
 using WebAppLab.Data.Models;
+using WebAppLab.Data.Constants;
 using WebAppLab.Services;
 
 namespace WebAppLab.Controllers

@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 
 using WebAppLab.Data;
 using WebAppLab.Data.Models;
+using WebAppLab.Data.Constants;
+
 using Microsoft.EntityFrameworkCore;
 
 namespace WebAppLab.Services
