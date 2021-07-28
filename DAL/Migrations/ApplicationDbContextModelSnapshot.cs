@@ -171,12 +171,18 @@ namespace WebAppLab.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Name", "Platform", "DateCreated", "TotalRating");
+                    b.HasIndex("DateCreated");
+
+                    b.HasIndex("Name");
+
+                    b.HasIndex("Platform");
+
+                    b.HasIndex("TotalRating");
 
                     b.ToTable("Products");
                 });
 
-            modelBuilder.Entity("WebAppLab.Data.Models.UserDbo", b =>
+            modelBuilder.Entity("WebAppLab.Data.Models.User", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("nvarchar(450)");
@@ -264,7 +270,7 @@ namespace WebAppLab.Data.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
                 {
-                    b.HasOne("WebAppLab.Data.Models.UserDbo", null)
+                    b.HasOne("WebAppLab.Data.Models.User", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -273,7 +279,7 @@ namespace WebAppLab.Data.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
                 {
-                    b.HasOne("WebAppLab.Data.Models.UserDbo", null)
+                    b.HasOne("WebAppLab.Data.Models.User", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -288,7 +294,7 @@ namespace WebAppLab.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("WebAppLab.Data.Models.UserDbo", null)
+                    b.HasOne("WebAppLab.Data.Models.User", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -297,7 +303,7 @@ namespace WebAppLab.Data.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
                 {
-                    b.HasOne("WebAppLab.Data.Models.UserDbo", null)
+                    b.HasOne("WebAppLab.Data.Models.User", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)

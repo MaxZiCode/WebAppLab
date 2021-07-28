@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
+using WebAppLab.Data.Configurations;
+
 using WebAppLab.Data.Models;
 
 namespace WebAppLab.Data
@@ -19,7 +21,7 @@ namespace WebAppLab.Data
 		{
 			base.OnModelCreating(builder);
 
-			builder.Entity<Product>().Property(p => p.Platform).HasConversion<int>();
+			builder.ApplyConfiguration(new ProductConfiguration());
 		}
 	}
 }
