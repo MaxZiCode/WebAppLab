@@ -26,9 +26,9 @@ namespace WebAppLab.Controllers
 		}
 
 		[HttpGet("topPlatforms")]
-		public IEnumerable<string> GetTopPlatforms() => productManager.GetTop(3);
+		public async Task<List<Platforms>> GetTopPlatforms() => await productManager.GetTop(3);
 
 		[HttpGet("search")]
-		public IEnumerable<Product> SearchProducts(string term, int limit, int offset) => productManager.FindByName(term, limit, offset);
+		public async Task<List<Product>> SearchProducts(string term, int limit, int offset) => await productManager.FindByName(term, limit, offset);
 	}
 }

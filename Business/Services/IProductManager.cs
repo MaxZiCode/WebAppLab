@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 
 using WebAppLab.Data.Models;
 
@@ -6,7 +7,7 @@ namespace WebAppLab.Services
 {
 	public interface IProductManager
 	{
-		IEnumerable<Product> FindByName(string name, int maxCount, int offset);
-		IEnumerable<Platforms> GetTop(int count);
+		Task<List<Product>> FindByName(string name, int maxCount, int offset);
+		Task<List<Platforms>> GetTop(int count);
 	}
 }

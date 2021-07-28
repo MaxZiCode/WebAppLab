@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 using WebAppLab.Data;
 using WebAppLab.Data.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace WebAppLab.Services
 {
@@ -18,23 +19,23 @@ namespace WebAppLab.Services
 			this.context = context;
 		}
 
-		public IEnumerable<Platforms> GetTop(int count)
+		public async Task<List<Platforms>> GetTop(int count)
 		{
-			return context.Products
-				.AsParallel()
+			return await context.Products
 				.GroupBy(p => p.Platform)
 				.OrderByDescending(g => g.Count())
 				.Select(g => g.Key)
-				.Take(count);
+				.Take(count)
+				.ToListAsync();
 		}
 
-		public IEnumerable<Product> FindByName(string name, int maxCount = int.MaxValue, int offset = 0)
+		public async Task<List<Product>> FindByName(string name, int maxCount = int.MaxValue, int offset = 0)
 		{
-			return context.Products
-				.AsParallel()
-				.Where(p => p.Name.Contains(name, StringComparison.OrdinalIgnoreCase))
+			return await context.Products
+				.Where(p => p.Name.Contains(name))
 				.Skip(offset)
-				.Take(maxCount);
+				.Take(maxCount)
+				.ToListAsync();
 		}
 	}
 }
