@@ -22,6 +22,7 @@ namespace WebAppLab.Data
 			base.OnModelCreating(builder);
 
 			builder.ApplyConfiguration(new ProductConfiguration());
+			builder.ApplyConfiguration(new DefaultProductData());
 		}
 	}
 }
