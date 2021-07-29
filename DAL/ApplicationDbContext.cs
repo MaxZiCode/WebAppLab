@@ -11,6 +11,7 @@ namespace WebAppLab.Data
 	public class ApplicationDbContext : IdentityDbContext<User, IdentityRole, string>
 	{
 		public DbSet<Product> Products { get; set; }
+		public DbSet<ProductRating> ProductRatings { get; set; }
 
 		public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
 			: base(options)

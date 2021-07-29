@@ -418,7 +418,7 @@ namespace WebAppLab.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("ProductRating");
+                    b.ToTable("ProductRatings");
                 });
 
             modelBuilder.Entity("WebAppLab.Data.Models.User", b =>
