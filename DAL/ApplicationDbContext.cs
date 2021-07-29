@@ -21,6 +21,10 @@ namespace WebAppLab.Data
 		{
 			base.OnModelCreating(builder);
 
+			var productBuilder = builder.Entity<Product>();
+			productBuilder.HasQueryFilter(p => p.DeletedAt == null);
+			productBuilder.Property(p => p.Platform).HasConversion<int>();
+			productBuilder.Property(p => p.Rating).HasConversion<int>();
 			builder.ApplyConfiguration(new ProductConfiguration());
 			builder.ApplyConfiguration(new DefaultProductData());
 		}
