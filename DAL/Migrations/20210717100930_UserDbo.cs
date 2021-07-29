@@ -88,6 +88,11 @@ namespace WebAppLab.Data.Migrations
 				name: "LastName",
 				table: "AspNetUsers");
 
+
+			migrationBuilder.DropPrimaryKey("PK_AspNetUserTokens", "AspNetUserTokens");
+			migrationBuilder.DropPrimaryKey("PK_AspNetUserLogins", "AspNetUserLogins");
+
+
 			migrationBuilder.AlterColumn<string>(
 				name: "Name",
 				table: "AspNetUserTokens",
@@ -123,6 +128,9 @@ namespace WebAppLab.Data.Migrations
 				nullable: false,
 				oldClrType: typeof(string),
 				oldType: "nvarchar(450)");
+
+			migrationBuilder.AddPrimaryKey("PK_AspNetUserTokens", "AspNetUserTokens", new string[] { "UserId", "LoginProvider", "Name" });
+			migrationBuilder.AddPrimaryKey("PK_AspNetUserLogins", "AspNetUserLogins", new string[] { "LoginProvider", "ProviderKey" });
 		}
 	}
 }

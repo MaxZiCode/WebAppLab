@@ -12,12 +12,12 @@ namespace WebAppLab.Services
 	public class ImageUploader : IImageUploader
 	{
 		private readonly Cloudinary cloudinary;
-		private readonly string imagesFolder;
+		private readonly string imagesCloudFolder;
 
 		public ImageUploader(Cloudinary cloudinary, IOptions<CloudinarySettings> options)
 		{
 			this.cloudinary = cloudinary;
-			imagesFolder = options.Value.ImagesFolder;
+			imagesCloudFolder = options.Value.ImagesFolder;
 		}
 
 		public string Upload(string fileName, Stream stream)
@@ -25,9 +25,9 @@ namespace WebAppLab.Services
 			ImageUploadParams imageUploadParams = new()
 			{
 				File = new(fileName, stream),
-				Folder = imagesFolder
+				Folder = imagesCloudFolder
 			};
-			// UploadAsync method have an issue with Stream disposing.
+			// UploadAsync method have an issue with ObjectDisposedException.
 			var result = cloudinary.Upload(imageUploadParams);
 			return result.Url.AbsoluteUri;
 		}

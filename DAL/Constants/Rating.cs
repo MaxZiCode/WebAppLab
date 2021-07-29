@@ -1,4 +1,4 @@
-﻿namespace WebAppLab.Data.Models
+﻿namespace WebAppLab.Data.Constants
 {
 	public enum Rating : int
 	{
