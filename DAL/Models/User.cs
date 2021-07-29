@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 
 using System;
+using System.Collections.Generic;
 
 namespace WebAppLab.Data.Models
 {
@@ -10,5 +11,7 @@ namespace WebAppLab.Data.Models
 		public string LastName { get; set; }
 		public DateTime DateOfBirth { get; set; }
 		public string AddressDelivery { get; set; }
+
+		public ICollection<ProductRating> ProductRatings { get; set; }
 	}
 }
