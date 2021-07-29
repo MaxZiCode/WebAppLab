@@ -1,1 +1,1 @@
-dotnet ef database update --startup-project ../Web
+dotnet ef database update $args[0] --startup-project ../Web 

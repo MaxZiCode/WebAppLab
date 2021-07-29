@@ -67,6 +67,7 @@ namespace WebAppLab
 			services.AddControllers().AddNewtonsoftJson();
 
 			services.AddScoped<IUserChanger, UserChanger>();
+			services.AddScoped<IProductManager, ProductManager>();
 		}
 
 		public void Configure(
