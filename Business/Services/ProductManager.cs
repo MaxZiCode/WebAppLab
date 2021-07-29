@@ -14,6 +14,8 @@ using WebAppLab.Models;
 using WebAppLab.Data.Constants;
 
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
+using WebAppLab.Extensions;
 
 namespace WebAppLab.Services
 {
@@ -110,5 +112,40 @@ namespace WebAppLab.Services
 		private ProductViewModel ProductToView(Product product) => mapper.Map<ProductViewModel>(product);
 
 		private Product ViewToProduct(ProductViewModel productView) => mapper.Map<Product>(productView);
+
+		public async Task<ProductRating> AddProductRatingAsync(ClaimsPrincipal userClaims, Guid productId, int ratingValue)
+		{
+			var userId = userClaims.GetId();
+			ProductRating productRating = new()
+			{
+				ProductId = productId,
+				UserId = userId,
+				Rating = ratingValue
+			};
+
+			if (!await context.ProductRatings.ContainsAsync(productRating))
+			{
+				await context.ProductRatings.AddAsync(productRating);
+			}
+			else
+			{
+				context.ProductRatings.Update(productRating);
+			}
+
+			await context.SaveChangesAsync();
+
+			return await context.ProductRatings.FindAsync(productId, userId);
+		}
+
+		public async Task UpdateTotalRatingAsync(Guid productId)
+		{
+			var product = await FindInDbAsync(productId);
+			var sum = await context.ProductRatings.Where(pr => pr.ProductId == productId).SumAsync(pr => pr.Rating);
+			var count = await context.ProductRatings.CountAsync();
+
+			product.TotalRating = count != 0 ? sum / count : default;
+			context.Update(product);
+			await context.SaveChangesAsync();
+		}
 	}
 }

@@ -2,9 +2,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 using WebAppLab.Data.Constants;
+using WebAppLab.Data.Models;
 using WebAppLab.Models;
 
 namespace WebAppLab.Services
@@ -17,5 +19,7 @@ namespace WebAppLab.Services
 		Task<ProductViewModel> Create(string productViewJson, IFormFile logo, IFormFile background);
 		Task<ProductViewModel> Update(string productViewJson, IFormFile logo, IFormFile background);
 		Task Delete(Guid id);
+		Task<ProductRating> AddProductRatingAsync(ClaimsPrincipal userClaims, Guid productId, int ratingValue);
+		Task UpdateTotalRatingAsync(Guid productId);
 	}
 }
