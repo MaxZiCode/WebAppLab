@@ -42,12 +42,12 @@ namespace WebAppLab.Services
 
 		public async Task<List<ProductViewModel>> FindByName(string name, int maxCount = int.MaxValue, int offset = 0)
 		{
-			return await context.Products
+			var list = await context.Products
 				.Where(p => p.Name.Contains(name))
 				.Skip(offset)
 				.Take(maxCount)
-				.Select(p => ProductToView(p))
 				.ToListAsync();
+			return list.Select(p => ProductToView(p)).ToList();
 		}
 
 		public async Task<ProductViewModel> FindByIdAsync(Guid id)
