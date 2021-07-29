@@ -11,6 +11,7 @@ using WebAppLab.Data;
 using WebAppLab.Data.Models;
 using WebAppLab.Helpers;
 using WebAppLab.Models;
+using WebAppLab.Extensions;
 
 namespace WebAppLab.Services
 {
@@ -69,7 +70,7 @@ namespace WebAppLab.Services
 
 		private async Task<User> GetUserFromDatabaseAsync(ClaimsPrincipal claimsPrincipal)
 		{
-			var id = claimsPrincipal.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value;
+			var id = claimsPrincipal.GetId();
 			var userDbo = await context.Users.FirstAsync(u => u.Id == id);
 			return userDbo;
 		}
