@@ -1,9 +1,11 @@
 ﻿using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
 
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 
 using System.IO;
+using System.Threading.Tasks;
 
 using WebAppLab.Infrastructure;
 
@@ -20,15 +22,16 @@ namespace WebAppLab.Services
 			imagesCloudFolder = options.Value.ImagesFolder;
 		}
 
-		public string Upload(string fileName, Stream stream)
+		public async Task<string> UploadAsync(IFormFile file)
 		{
+			//Cloudinary cloudinary = new Cloudinary(cloudinaryAccount);
+			using var fileStream = file.OpenReadStream();
 			ImageUploadParams imageUploadParams = new()
 			{
-				File = new(fileName, stream),
+				File = new(file.FileName, fileStream),
 				Folder = imagesCloudFolder
 			};
-			// UploadAsync method have an issue with ObjectDisposedException.
-			var result = cloudinary.Upload(imageUploadParams);
+			var result = await cloudinary.UploadAsync(imageUploadParams);
 			return result.Url.AbsoluteUri;
 		}
 	}
