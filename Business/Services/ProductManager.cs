@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using AutoMapper.QueryableExtensions;
 
 using Microsoft.AspNetCore.Http;
 
@@ -43,12 +44,13 @@ namespace WebAppLab.Services
 
 		public async Task<List<ProductViewModel>> FindByName(string name, int maxCount = int.MaxValue, int offset = 0)
 		{
-			var list = await context.Products
+			return await context.Products
 				.Where(p => p.Name.Contains(name))
+				.OrderBy(p => p.Name)
 				.Skip(offset)
 				.Take(maxCount)
+				.ProjectTo<ProductViewModel>(mapper.ConfigurationProvider)
 				.ToListAsync();
-			return list.Select(p => mapper.Map<ProductViewModel>(p)).ToList();
 		}
 
 		public async Task<ProductViewModel> FindByIdAsync(Guid id)
