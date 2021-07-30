@@ -14,6 +14,7 @@ using WebAppLab.Models;
 using WebAppLab.Data.Constants;
 
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 
 namespace WebAppLab.Services
 {
@@ -47,13 +48,13 @@ namespace WebAppLab.Services
 				.Skip(offset)
 				.Take(maxCount)
 				.ToListAsync();
-			return list.Select(p => ProductToView(p)).ToList();
+			return list.Select(p => mapper.Map<ProductViewModel>(p)).ToList();
 		}
 
 		public async Task<ProductViewModel> FindByIdAsync(Guid id)
 		{
 			var product = await FindInDbAsync(id);
-			return ProductToView(product);
+			return mapper.Map<ProductViewModel>(product);
 		}
 
 		public async Task<ProductViewModel> Create(string productViewJson, IFormFile logo, IFormFile background) =>
@@ -68,8 +69,8 @@ namespace WebAppLab.Services
 
 		private async Task<ProductViewModel> ProductAction(Func<Product, Task> action, string productViewJson, IFormFile logo, IFormFile background)
 		{
-			var productView = JsonConverter.GetObject<ProductViewModel>(productViewJson);
-			var product = ViewToProduct(productView);
+			var productView = JsonConvert.DeserializeObject<ProductViewModel>(productViewJson);
+			var product = mapper.Map<Product>(productView);
 
 			var result = Parallel.ForEach(new (IFormFile File, Action<string> Action)[]
 			{
@@ -106,9 +107,5 @@ namespace WebAppLab.Services
 		{
 			return await context.Products.FindAsync(id);
 		}
-
-		private ProductViewModel ProductToView(Product product) => mapper.Map<ProductViewModel>(product);
-
-		private Product ViewToProduct(ProductViewModel productView) => mapper.Map<Product>(productView);
 	}
 }
