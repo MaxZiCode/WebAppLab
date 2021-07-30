@@ -53,7 +53,7 @@ namespace WebAppLab.Services
 
 		public async Task<ProductViewModel> FindByIdAsync(Guid id)
 		{
-			var product = await FindInDbAsync(id);
+			var product = await context.Products.FindAsync(id);
 			return mapper.Map<ProductViewModel>(product);
 		}
 
@@ -95,17 +95,12 @@ namespace WebAppLab.Services
 
 		public async Task Delete(Guid id)
 		{
-			var product = await FindInDbAsync(id);
+			var product = await context.Products.FindAsync(id);
 			if (product == null)
 				return;
 
 			product.DeletedAt = DateTime.Now;
 			await context.SaveChangesAsync();
-		}
-
-		private async Task<Product> FindInDbAsync(Guid id)
-		{
-			return await context.Products.FindAsync(id);
 		}
 	}
 }
