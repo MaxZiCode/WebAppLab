@@ -59,44 +59,39 @@ namespace WebAppLab.Services
 			return mapper.Map<ProductViewModel>(product);
 		}
 
-		public async Task<ProductViewModel> Create(string productViewJson, IFormFile logo, IFormFile background)
+		public async Task<ProductViewModel> Create(ProductForm productData)
 		{
-			var product = DeserializeProductAndMap(productViewJson);
-			await UploadImagesAndSetToProduct(product, logo, background);
+			var product = await UploadImagesAndGetProduct(productData);
 
 			await context.Products.AddAsync(product);
 			await context.SaveChangesAsync();
-			return await FindByIdAsync(product.Id);
+			return await FindByIdAsync(productData.Id);
 
 		}
 
-		public async Task<ProductViewModel> Update(string productViewJson, IFormFile logo, IFormFile background)
+		public async Task<ProductViewModel> Update(ProductForm productData)
 		{
-			var product = DeserializeProductAndMap(productViewJson);
-			await UploadImagesAndSetToProduct(product, logo, background);
+			var product = await UploadImagesAndGetProduct(productData);
 
 			context.Products.Update(product);
 			await context.SaveChangesAsync();
-			return await FindByIdAsync(product.Id);
+			return await FindByIdAsync(productData.Id);
 		}
 
-		private Product DeserializeProductAndMap(string productViewJson)
+		private async Task<Product> UploadImagesAndGetProduct(ProductForm productData)
 		{
-			var productView = JsonConvert.DeserializeObject<ProductViewModel>(productViewJson);
-			return mapper.Map<Product>(productView);
-		}
+			var logoLinkTask = productData.Logo == null ? null : imageUploader.UploadAsync(productData.Logo);
+			var backgroundLinkTask = productData.Background == null ? null : imageUploader.UploadAsync(productData.Background);
 
-		private async Task UploadImagesAndSetToProduct(Product product, IFormFile logo, IFormFile background)
-		{
-			var logoLinkTask = logo == null ? null : imageUploader.UploadAsync(logo);
+			Product product = mapper.Map<Product>(productData);
 
 			if (logoLinkTask != null)
 				product.Logo = await logoLinkTask;
 
-			var backgroundLinkTask = background == null ? null : imageUploader.UploadAsync(logo);
-
 			if (backgroundLinkTask != null)
 				product.Background = await backgroundLinkTask;
+
+			return product;
 		}
 
 		public async Task Delete(Guid id)

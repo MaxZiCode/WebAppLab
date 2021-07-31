@@ -43,16 +43,16 @@ namespace WebAppLab.Controllers
 
 		[Authorize(Roles = Roles.Admin)]
 		[HttpPost]
-		public async Task<ActionResult<ProductViewModel>> CreateProduct([FromForm] string product, [FromForm] IFormFile logo, [FromForm] IFormFile background)
+		public async Task<ActionResult<ProductViewModel>> CreateProduct([FromForm] ProductForm product)
 		{
-			var productView = await productManager.Create(product, logo, background);
+			var productView = await productManager.Create(product);
 			return StatusCode(201, productView);
 		}
 
 		[Authorize(Roles = Roles.Admin)]
 		[HttpPut]
-		public async Task<ActionResult<ProductViewModel>> UpdateProduct([FromForm] string product, [FromForm] IFormFile logo, [FromForm] IFormFile background) =>
-			await productManager.Update(product, logo, background);
+		public async Task<ActionResult<ProductViewModel>> UpdateProduct([FromForm] ProductForm product) =>
+			await productManager.Update(product);
 
 		[Authorize(Roles = Roles.Admin)]
 		[HttpDelete("id/{id}")]
