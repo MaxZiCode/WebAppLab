@@ -18,12 +18,15 @@ namespace WebAppLab.Infrastructure
 
 		public static IServiceCollection AddCloudinary(this IServiceCollection services, IConfiguration configuration)
 		{
-			var settings = configuration.GetSection(nameof(CloudinarySettings)).Get<CloudinarySettings>();
+			var cloudinarySection = configuration.GetSection("CloudinarySettings");
+			var settings = cloudinarySection.Get<CloudinarySettings>();
+			services.Configure<CloudinarySettings>(cloudinarySection);
+
 			Account account = new(settings.CloudName, settings.ApiKey, settings.ApiSecret);
 
 			services.AddSingleton(account);
 			services.AddTransient<Cloudinary>();
-			services.AddTransient<IImageUploader, ImageUploader>();
+			services.AddTransient<IImageManager, ImageManager>();
 
 			return services;
 		}

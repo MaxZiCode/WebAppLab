@@ -23,13 +23,13 @@ namespace WebAppLab.Services
 	{
 		private readonly ApplicationDbContext context;
 		private readonly IMapper mapper;
-		private readonly IImageUploader imageUploader;
+		private readonly IImageManager imageManager;
 
-		public ProductManager(ApplicationDbContext context, IMapper mapper, IImageUploader imageUploader)
+		public ProductManager(ApplicationDbContext context, IMapper mapper, IImageManager imageManager)
 		{
 			this.context = context;
 			this.mapper = mapper;
-			this.imageUploader = imageUploader;
+			this.imageManager = imageManager;
 		}
 
 		public async Task<List<Platforms>> GetTopAsync(int count)
@@ -61,9 +61,15 @@ namespace WebAppLab.Services
 
 		public async Task<ProductViewModel> CreateAsync(ProductForm productData)
 		{
-			var product = await UploadImagesAndGetProductAsync(productData);
-
+			Product product = mapper.Map<Product>(productData);
 			await context.Products.AddAsync(product);
+
+			var logoLinkTask = UploadImageAsync(productData.Logo);
+			var backgroundLinkTask = UploadImageAsync(productData.Background);
+			product.Logo = await logoLinkTask;
+			product.Background = await backgroundLinkTask;
+
+			context.Update(product);
 			await context.SaveChangesAsync();
 			return mapper.Map<ProductViewModel>(product);
 
@@ -71,24 +77,23 @@ namespace WebAppLab.Services
 
 		public async Task<ProductViewModel> UpdateAsync(ProductForm productData)
 		{
-			var product = await UploadImagesAndGetProductAsync(productData);
+			var product = context.Products.Find(productData.Id);
+
+			var logoDeleteTask = imageManager.DeleteAsync(product.Logo);
+			var backgroundDeleteTask = imageManager.DeleteAsync(product.Background);
+			var logoLinkTask = UploadImageAsync(productData.Logo);
+			var backgroundLinkTask = UploadImageAsync(productData.Background);
+
+			mapper.Map(productData, product);
+
+			await logoDeleteTask;
+			await backgroundDeleteTask;
+			product.Logo = await logoLinkTask;
+			product.Background = await backgroundLinkTask;
 
 			context.Products.Update(product);
 			await context.SaveChangesAsync();
 			return mapper.Map<ProductViewModel>(product);
-		}
-
-		private async Task<Product> UploadImagesAndGetProductAsync(ProductForm productData)
-		{
-			var logoLinkTask = UploadImageAsync(productData.Logo);
-			var backgroundLinkTask = UploadImageAsync(productData.Background);
-
-			Product product = mapper.Map<Product>(productData);
-
-			product.Logo = await logoLinkTask;
-			product.Background = await backgroundLinkTask;
-
-			return product;
 		}
 
 		private async Task<string> UploadImageAsync(IFormFile formFile)
@@ -96,7 +101,7 @@ namespace WebAppLab.Services
 			if (formFile == null)
 				return null;
 
-			return await imageUploader.UploadAsync(formFile);
+			return await imageManager.UploadAsync(formFile);
 		}
 
 		public async Task DeleteAsync(Guid id)
@@ -104,6 +109,9 @@ namespace WebAppLab.Services
 			var product = await context.Products.FindAsync(id);
 			if (product == null)
 				return;
+
+			await imageManager.DeleteAsync(product.Logo);
+			await imageManager.DeleteAsync(product.Background);
 
 			product.DeletedAt = DateTime.Now;
 			await context.SaveChangesAsync();
