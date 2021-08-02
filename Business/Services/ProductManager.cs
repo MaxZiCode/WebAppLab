@@ -61,37 +61,42 @@ namespace WebAppLab.Services
 
 		public async Task<ProductViewModel> CreateAsync(ProductForm productData)
 		{
-			var product = await UploadImagesAndGetProduct(productData);
+			var product = await UploadImagesAndGetProductAsync(productData);
 
 			await context.Products.AddAsync(product);
 			await context.SaveChangesAsync();
-			return await FindByIdAsync(productData.Id);
+			return mapper.Map<ProductViewModel>(product);
 
 		}
 
 		public async Task<ProductViewModel> UpdateAsync(ProductForm productData)
 		{
-			var product = await UploadImagesAndGetProduct(productData);
+			var product = await UploadImagesAndGetProductAsync(productData);
 
 			context.Products.Update(product);
 			await context.SaveChangesAsync();
-			return await FindByIdAsync(productData.Id);
+			return mapper.Map<ProductViewModel>(product);
 		}
 
-		private async Task<Product> UploadImagesAndGetProduct(ProductForm productData)
+		private async Task<Product> UploadImagesAndGetProductAsync(ProductForm productData)
 		{
-			var logoLinkTask = productData.Logo == null ? null : imageUploader.UploadAsync(productData.Logo);
-			var backgroundLinkTask = productData.Background == null ? null : imageUploader.UploadAsync(productData.Background);
+			var logoLinkTask = UploadImageAsync(productData.Logo);
+			var backgroundLinkTask = UploadImageAsync(productData.Background);
 
 			Product product = mapper.Map<Product>(productData);
 
-			if (logoLinkTask != null)
-				product.Logo = await logoLinkTask;
-
-			if (backgroundLinkTask != null)
-				product.Background = await backgroundLinkTask;
+			product.Logo = await logoLinkTask;
+			product.Background = await backgroundLinkTask;
 
 			return product;
+		}
+
+		private async Task<string> UploadImageAsync(IFormFile formFile)
+		{
+			if (formFile == null)
+				return null;
+
+			return await imageUploader.UploadAsync(formFile);
 		}
 
 		public async Task DeleteAsync(Guid id)
