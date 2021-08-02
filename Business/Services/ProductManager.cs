@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using AutoMapper.QueryableExtensions;
 
 using Microsoft.AspNetCore.Http;
 
@@ -23,16 +24,16 @@ namespace WebAppLab.Services
 	{
 		private readonly ApplicationDbContext context;
 		private readonly IMapper mapper;
-		private readonly IImageUploader imageUploader;
+		private readonly IImageManager imageManager;
 
-		public ProductManager(ApplicationDbContext context, IMapper mapper, IImageUploader imageUploader)
+		public ProductManager(ApplicationDbContext context, IMapper mapper, IImageManager imageManager)
 		{
 			this.context = context;
 			this.mapper = mapper;
-			this.imageUploader = imageUploader;
+			this.imageManager = imageManager;
 		}
 
-		public async Task<List<Platforms>> GetTop(int count)
+		public async Task<List<Platforms>> GetTopAsync(int count)
 		{
 			return await context.Products
 				.GroupBy(p => p.Platform)
@@ -42,76 +43,80 @@ namespace WebAppLab.Services
 				.ToListAsync();
 		}
 
-		public async Task<List<ProductViewModel>> FindByName(string name, int maxCount = int.MaxValue, int offset = 0)
+		public async Task<List<ProductViewModel>> FindByNameAsync(string name, int maxCount = int.MaxValue, int offset = 0)
 		{
-			var list = await context.Products
+			return await context.Products
 				.Where(p => p.Name.Contains(name))
+				.OrderBy(p => p.Name)
 				.Skip(offset)
 				.Take(maxCount)
+				.ProjectTo<ProductViewModel>(mapper.ConfigurationProvider)
 				.ToListAsync();
-			return list.Select(p => ProductToView(p)).ToList();
 		}
 
 		public async Task<ProductViewModel> FindByIdAsync(Guid id)
 		{
-			var product = await FindInDbAsync(id);
-			return ProductToView(product);
+			var product = await context.Products.FindAsync(id);
+			return mapper.Map<ProductViewModel>(product);
 		}
 
-		public async Task<ProductViewModel> Create(string productViewJson, IFormFile logo, IFormFile background) =>
-			await ProductAction(async p => await context.Products.AddAsync(p), productViewJson, logo, background);
-
-		public async Task<ProductViewModel> Update(string productViewJson, IFormFile logo, IFormFile background) =>
-			await ProductAction(p =>
-			{
-				context.Products.Update(p);
-				return Task.CompletedTask;
-			}, productViewJson, logo, background);
-
-		private async Task<ProductViewModel> ProductAction(Func<Product, Task> action, string productViewJson, IFormFile logo, IFormFile background)
+		public async Task<ProductViewModel> CreateAsync(ProductForm productData)
 		{
-			var productView = JsonConverter.GetObject<ProductViewModel>(productViewJson);
-			var product = ViewToProduct(productView);
+			Product product = mapper.Map<Product>(productData);
+			await context.Products.AddAsync(product);
 
-			var result = Parallel.ForEach(new (IFormFile File, Action<string> Action)[]
-			{
-				(logo, s => product.Logo = s),
-				(background,  s => product.Background = s)
-			},
-			item =>
-			{
-				if (item.File != null)
-				{
-					var fileName = item.File.FileName;
-					using var stream = item.File.OpenReadStream();
-					var link = imageUploader.Upload(item.File.FileName, stream);
-					item.Action(link);
-				}
-			});
+			var logoLinkTask = UploadImageAsync(productData.Logo);
+			var backgroundLinkTask = UploadImageAsync(productData.Background);
+			product.Logo = await logoLinkTask;
+			product.Background = await backgroundLinkTask;
 
-			await action(product);
+			context.Update(product);
 			await context.SaveChangesAsync();
-			return await FindByIdAsync(product.Id);
+			return mapper.Map<ProductViewModel>(product);
+
 		}
 
-		public async Task Delete(Guid id)
+		public async Task<ProductViewModel> UpdateAsync(ProductForm productData)
 		{
-			var product = await FindInDbAsync(id);
+			var product = context.Products.Find(productData.Id);
+
+			var logoDeleteTask = imageManager.DeleteAsync(product.Logo);
+			var backgroundDeleteTask = imageManager.DeleteAsync(product.Background);
+			var logoLinkTask = UploadImageAsync(productData.Logo);
+			var backgroundLinkTask = UploadImageAsync(productData.Background);
+
+			mapper.Map(productData, product);
+
+			await logoDeleteTask;
+			await backgroundDeleteTask;
+			product.Logo = await logoLinkTask;
+			product.Background = await backgroundLinkTask;
+
+			context.Products.Update(product);
+			await context.SaveChangesAsync();
+			return mapper.Map<ProductViewModel>(product);
+		}
+
+		private async Task<string> UploadImageAsync(IFormFile formFile)
+		{
+			if (formFile == null)
+				return null;
+
+			return await imageManager.UploadAsync(formFile);
+		}
+
+		public async Task DeleteAsync(Guid id)
+		{
+			var product = await context.Products.FindAsync(id);
 			if (product == null)
 				return;
+
+			await imageManager.DeleteAsync(product.Logo);
+			await imageManager.DeleteAsync(product.Background);
 
 			product.DeletedAt = DateTime.Now;
 			await context.SaveChangesAsync();
 		}
-
-		private async Task<Product> FindInDbAsync(Guid id)
-		{
-			return await context.Products.FindAsync(id);
-		}
-
-		private ProductViewModel ProductToView(Product product) => mapper.Map<ProductViewModel>(product);
-
-		private Product ViewToProduct(ProductViewModel productView) => mapper.Map<Product>(productView);
 
 		public async Task<ProductRating> AddProductRatingAsync(ClaimsPrincipal userClaims, Guid productId, int ratingValue)
 		{
@@ -139,7 +144,7 @@ namespace WebAppLab.Services
 
 		public async Task UpdateTotalRatingAsync(Guid productId)
 		{
-			var product = await FindInDbAsync(productId);
+			var product = await context.Products.FindAsync(productId);
 			var sum = await context.ProductRatings.Where(pr => pr.ProductId == productId).SumAsync(pr => pr.Rating);
 			var count = await context.ProductRatings.CountAsync();
 

@@ -66,6 +66,7 @@ namespace WebAppLab
 			{
 				config.CreateMap<User, UserViewModel>().ReverseMap();
 				config.CreateMap<Product, ProductViewModel>().ReverseMap();
+				config.CreateMap<ProductForm, Product>();
 			});
 
 			services.AddControllers().AddNewtonsoftJson();

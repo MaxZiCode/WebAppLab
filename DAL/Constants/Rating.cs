@@ -2,10 +2,10 @@
 {
 	public enum Rating : int
 	{
-		PEGI3,
-		PEGI7,
-		PEGI12,
-		PEGI16,
-		PEGI18
+		PEGI3 = 3,
+		PEGI7 = 7,
+		PEGI12 = 12,
+		PEGI16 = 16,
+		PEGI18 = 18
 	}
 }
