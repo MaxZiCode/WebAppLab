@@ -22,13 +22,12 @@ namespace WebAppLab.Services
 			imagesCloudFolder = options.Value.ImagesFolder;
 		}
 
-		public async Task<string> UploadAsync(IFormFile file)
+		public async Task<string> UploadAsync(IFormFile formFile)
 		{
-			//Cloudinary cloudinary = new Cloudinary(cloudinaryAccount);
-			using var fileStream = file.OpenReadStream();
+			using var formFileStream = formFile.OpenReadStream();
 			ImageUploadParams imageUploadParams = new()
 			{
-				File = new(file.FileName, fileStream),
+				File = new(formFile.FileName, formFileStream),
 				Folder = imagesCloudFolder
 			};
 			var result = await cloudinary.UploadAsync(imageUploadParams);
