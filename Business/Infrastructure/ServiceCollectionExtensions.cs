@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using CloudinaryDotNet;
+
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 using WebAppLab.Services;
@@ -11,6 +13,21 @@ namespace WebAppLab.Infrastructure
 		{
 			services.Configure<SmtpSettings>(configuration.GetSection(nameof(SmtpSettings)));
 			services.AddTransient<IEmailSender, EmailSender>();
+			return services;
+		}
+
+		public static IServiceCollection AddCloudinary(this IServiceCollection services, IConfiguration configuration)
+		{
+			var cloudinarySection = configuration.GetSection("CloudinarySettings");
+			var settings = cloudinarySection.Get<CloudinarySettings>();
+			services.Configure<CloudinarySettings>(cloudinarySection);
+
+			Account account = new(settings.CloudName, settings.ApiKey, settings.ApiSecret);
+
+			services.AddSingleton(account);
+			services.AddTransient<Cloudinary>();
+			services.AddTransient<IImageManager, ImageManager>();
+
 			return services;
 		}
 	}

@@ -18,15 +18,20 @@ namespace WebAppLab.Data.Configurations
 				.IsRequired();
 
 			builder.Property(p => p.Platform)
-				.HasConversion<int>()
 				.IsRequired();
 
 			builder.Property(p => p.DateCreated)
 				.HasColumnType("Date")
 				.IsRequired();
 
-			builder.Property(p => p.TotalRating)
-				.IsRequired();
+			builder.Property(p => p.Price)
+				.HasColumnType("DECIMAL(16,4)");
+
+			builder.Property(p => p.DeletedAt)
+				.HasColumnType("Date")
+				.IsRequired(false);
+
+			builder.HasQueryFilter(p => p.DeletedAt == null);
 		}
 	}
 }

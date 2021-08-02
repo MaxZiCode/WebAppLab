@@ -1,11 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
 
-using System;
-using System.Collections.Generic;
-
-using WebAppLab.Data.Constants;
-
-using WebAppLab.Data.Models;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace WebAppLab.Data.Migrations
 {
