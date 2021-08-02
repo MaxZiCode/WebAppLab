@@ -182,7 +182,7 @@ namespace WebAppLab.Data.Migrations
                         .HasColumnType("int");
 
                     b.Property<decimal>("Price")
-                        .HasColumnType("Money");
+                        .HasColumnType("DECIMAL(16,4)");
 
                     b.Property<int>("Rating")
                         .HasColumnType("int");
