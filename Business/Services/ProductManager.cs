@@ -32,7 +32,7 @@ namespace WebAppLab.Services
 			this.imageUploader = imageUploader;
 		}
 
-		public async Task<List<Platforms>> GetTop(int count)
+		public async Task<List<Platforms>> GetTopAsync(int count)
 		{
 			return await context.Products
 				.GroupBy(p => p.Platform)
@@ -42,7 +42,7 @@ namespace WebAppLab.Services
 				.ToListAsync();
 		}
 
-		public async Task<List<ProductViewModel>> FindByName(string name, int maxCount = int.MaxValue, int offset = 0)
+		public async Task<List<ProductViewModel>> FindByNameAsync(string name, int maxCount = int.MaxValue, int offset = 0)
 		{
 			return await context.Products
 				.Where(p => p.Name.Contains(name))
@@ -59,7 +59,7 @@ namespace WebAppLab.Services
 			return mapper.Map<ProductViewModel>(product);
 		}
 
-		public async Task<ProductViewModel> Create(ProductForm productData)
+		public async Task<ProductViewModel> CreateAsync(ProductForm productData)
 		{
 			var product = await UploadImagesAndGetProduct(productData);
 
@@ -69,7 +69,7 @@ namespace WebAppLab.Services
 
 		}
 
-		public async Task<ProductViewModel> Update(ProductForm productData)
+		public async Task<ProductViewModel> UpdateAsync(ProductForm productData)
 		{
 			var product = await UploadImagesAndGetProduct(productData);
 
@@ -94,7 +94,7 @@ namespace WebAppLab.Services
 			return product;
 		}
 
-		public async Task Delete(Guid id)
+		public async Task DeleteAsync(Guid id)
 		{
 			var product = await context.Products.FindAsync(id);
 			if (product == null)

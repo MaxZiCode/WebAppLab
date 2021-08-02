@@ -11,11 +11,11 @@ namespace WebAppLab.Services
 {
 	public interface IProductManager
 	{
-		Task<List<ProductViewModel>> FindByName(string name, int maxCount, int offset);
-		Task<List<Platforms>> GetTop(int count);
+		Task<List<ProductViewModel>> FindByNameAsync(string name, int maxCount, int offset);
+		Task<List<Platforms>> GetTopAsync(int count);
 		Task<ProductViewModel> FindByIdAsync(Guid id);
-		Task<ProductViewModel> Create(ProductForm productData);
-		Task<ProductViewModel> Update(ProductForm productData);
-		Task Delete(Guid id);
+		Task<ProductViewModel> CreateAsync(ProductForm productData);
+		Task<ProductViewModel> UpdateAsync(ProductForm productData);
+		Task DeleteAsync(Guid id);
 	}
 }
