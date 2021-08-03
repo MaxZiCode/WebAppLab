@@ -66,7 +66,7 @@ namespace WebAppLab.Controllers
 		[HttpPost("rating")]
 		public async Task<ProductRating> AddRating([FromBody] RatingData ratingData)
 		{
-			var productRating = await productManager.AddProductRatingAsync(HttpContext.User, ratingData.ProductId, ratingData.Rating);
+			var productRating = await productManager.AddRatingAsync(HttpContext.User, ratingData.ProductId, ratingData.Rating);
 			await productManager.UpdateTotalRatingAsync(ratingData.ProductId);
 			return productRating;
 		}

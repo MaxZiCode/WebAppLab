@@ -11,6 +11,7 @@ using WebAppLab.Data;
 using WebAppLab.Data.Models;
 using WebAppLab.Helpers;
 using WebAppLab.Models;
+using WebAppLab.Wrappers;
 using WebAppLab.Extensions;
 
 namespace WebAppLab.Services

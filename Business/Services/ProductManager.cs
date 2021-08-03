@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 
 using WebAppLab.Data;
 using WebAppLab.Data.Models;
-using WebAppLab.Helpers;
 using WebAppLab.Models;
 using WebAppLab.Data.Constants;
 
@@ -118,7 +117,7 @@ namespace WebAppLab.Services
 			await context.SaveChangesAsync();
 		}
 
-		public async Task<ProductRating> AddProductRatingAsync(ClaimsPrincipal userClaims, Guid productId, int ratingValue)
+		public async Task<ProductRating> AddRatingAsync(ClaimsPrincipal userClaims, Guid productId, int ratingValue)
 		{
 			var userId = userClaims.GetId();
 			ProductRating productRating = new()
@@ -139,7 +138,7 @@ namespace WebAppLab.Services
 
 			await context.SaveChangesAsync();
 
-			return await context.ProductRatings.FindAsync(productId, userId);
+			return productRating;
 		}
 
 		public async Task UpdateTotalRatingAsync(Guid productId)
