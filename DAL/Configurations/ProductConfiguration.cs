@@ -13,6 +13,9 @@ namespace WebAppLab.Data.Configurations
 			builder.HasIndex(p => p.Platform);
 			builder.HasIndex(p => p.DateCreated);
 			builder.HasIndex(p => p.TotalRating);
+			builder.HasIndex(p => p.Genre);
+			builder.HasIndex(p => p.Rating);
+			builder.HasIndex(p => p.Price);
 
 			builder.Property(p => p.Name)
 				.IsRequired();

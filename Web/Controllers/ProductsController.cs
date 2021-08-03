@@ -12,6 +12,8 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using WebAppLab.Data;
+using WebAppLab.Data.Constants;
+using WebAppLab.Data.Models;
 using WebAppLab.Models;
 using WebAppLab.Services;
 using WebAppLab.Wrappers;
@@ -34,9 +36,17 @@ namespace WebAppLab.Controllers
 		}
 
 		[HttpGet("list")]
-		public async Task<PagedResult<List<ProductViewModel>>> GetProducts(int pageNumber, int pageSize)
+		public async Task<PagedResult<List<ProductViewModel>>> GetProducts(int pageNumber, int pageSize, string genre, Rating? age)
 		{
-			var products = await context.Products
+			IQueryable<Product> productsQuery = context.Products;
+
+			if (genre != null)
+				productsQuery = productsQuery.Where(p => p.Genre == genre);
+
+			if (age != null)
+				productsQuery = productsQuery.Where(p => p.Rating.Equals(age.Value));
+
+			var products = await productsQuery
 				.Skip((pageNumber - 1) * pageSize)
 				.Take(pageSize)
 				.ProjectTo<ProductViewModel>(mapper.ConfigurationProvider)
@@ -44,15 +54,13 @@ namespace WebAppLab.Controllers
 
 			var response = new PagedResult<List<ProductViewModel>>(products, pageNumber, pageSize);
 
-			var count = await context.Products.CountAsync();
-			var totalPages = Convert.ToInt32(Math.Ceiling((double)count / pageSize));
-
+			var totalPages = Convert.ToInt32(Math.Ceiling((double)products.Count / pageSize));
 			response.NextPage = pageNumber == totalPages ? null : linkGenerator.GetUriByAction(HttpContext, values: new { pageNumber = pageNumber + 1, pageSize });
 			response.PreviousPage = pageNumber == 1 ? null : linkGenerator.GetUriByAction(HttpContext, values: new { pageNumber = pageNumber - 1, pageSize });
 			response.FirstPage = linkGenerator.GetUriByAction(HttpContext, values: new { pageNumber = 1, pageSize });
 			response.LastPage = linkGenerator.GetUriByAction(HttpContext, values: new { pageNumber = totalPages, pageSize });
 			response.TotalPages = totalPages;
-			response.TotalRecords = count;
+			response.TotalRecords = products.Count;
 
 			return response;
 		}
