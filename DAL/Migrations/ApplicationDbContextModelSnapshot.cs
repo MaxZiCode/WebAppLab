@@ -150,6 +150,23 @@ namespace WebAppLab.Data.Migrations
                     b.ToTable("AspNetUserTokens");
                 });
 
+            modelBuilder.Entity("WebAppLab.Data.Models.Order", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsCompleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Orders");
+                });
+
             modelBuilder.Entity("WebAppLab.Data.Models.Product", b =>
                 {
                     b.Property<Guid>("Id")
@@ -178,6 +195,9 @@ namespace WebAppLab.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<Guid?>("OrderId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<int>("Platform")
                         .HasColumnType("int");
 
@@ -197,6 +217,8 @@ namespace WebAppLab.Data.Migrations
                     b.HasIndex("Genre");
 
                     b.HasIndex("Name");
+
+                    b.HasIndex("OrderId");
 
                     b.HasIndex("Platform");
 
@@ -555,6 +577,13 @@ namespace WebAppLab.Data.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("WebAppLab.Data.Models.Product", b =>
+                {
+                    b.HasOne("WebAppLab.Data.Models.Order", null)
+                        .WithMany("Products")
+                        .HasForeignKey("OrderId");
+                });
+
             modelBuilder.Entity("WebAppLab.Data.Models.ProductRating", b =>
                 {
                     b.HasOne("WebAppLab.Data.Models.Product", null)
@@ -568,6 +597,11 @@ namespace WebAppLab.Data.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("WebAppLab.Data.Models.Order", b =>
+                {
+                    b.Navigation("Products");
                 });
 
             modelBuilder.Entity("WebAppLab.Data.Models.Product", b =>
