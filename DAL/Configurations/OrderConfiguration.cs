@@ -9,8 +9,17 @@ namespace WebAppLab.Data.Configurations
 	{
 		public void Configure(EntityTypeBuilder<Order> builder)
 		{
-			builder.HasOne<User>().WithOne();
-			builder.HasMany<Product>();
+			builder.Property(o => o.UserId).IsRequired();
+
+			builder
+				.HasOne<User>()
+				.WithOne(u => u.Order)
+				.HasForeignKey<Order>(o => o.UserId)
+				.OnDelete(DeleteBehavior.Cascade);
+			builder
+				.HasMany(p => p.ProductAmounts)
+				.WithOne()
+				.HasForeignKey(pa => pa.OrderId);
 		}
 	}
 }

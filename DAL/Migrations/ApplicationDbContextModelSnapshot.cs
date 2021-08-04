@@ -160,9 +160,13 @@ namespace WebAppLab.Data.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
 
                     b.ToTable("Orders");
                 });
@@ -195,9 +199,6 @@ namespace WebAppLab.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<Guid?>("OrderId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<int>("Platform")
                         .HasColumnType("int");
 
@@ -217,8 +218,6 @@ namespace WebAppLab.Data.Migrations
                     b.HasIndex("Genre");
 
                     b.HasIndex("Name");
-
-                    b.HasIndex("OrderId");
 
                     b.HasIndex("Platform");
 
@@ -431,6 +430,26 @@ namespace WebAppLab.Data.Migrations
                         });
                 });
 
+            modelBuilder.Entity("WebAppLab.Data.Models.ProductAmount", b =>
+                {
+                    b.Property<Guid>("OrderId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Amount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
+                    b.HasKey("OrderId", "ProductId");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("ProductAmounts");
+                });
+
             modelBuilder.Entity("WebAppLab.Data.Models.ProductRating", b =>
                 {
                     b.Property<Guid>("ProductId")
@@ -577,11 +596,28 @@ namespace WebAppLab.Data.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("WebAppLab.Data.Models.Product", b =>
+            modelBuilder.Entity("WebAppLab.Data.Models.Order", b =>
+                {
+                    b.HasOne("WebAppLab.Data.Models.User", null)
+                        .WithOne("Order")
+                        .HasForeignKey("WebAppLab.Data.Models.Order", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("WebAppLab.Data.Models.ProductAmount", b =>
                 {
                     b.HasOne("WebAppLab.Data.Models.Order", null)
-                        .WithMany("Products")
-                        .HasForeignKey("OrderId");
+                        .WithMany("ProductAmounts")
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("WebAppLab.Data.Models.Product", null)
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("WebAppLab.Data.Models.ProductRating", b =>
@@ -601,7 +637,7 @@ namespace WebAppLab.Data.Migrations
 
             modelBuilder.Entity("WebAppLab.Data.Models.Order", b =>
                 {
-                    b.Navigation("Products");
+                    b.Navigation("ProductAmounts");
                 });
 
             modelBuilder.Entity("WebAppLab.Data.Models.Product", b =>
@@ -611,6 +647,8 @@ namespace WebAppLab.Data.Migrations
 
             modelBuilder.Entity("WebAppLab.Data.Models.User", b =>
                 {
+                    b.Navigation("Order");
+
                     b.Navigation("ProductRatings");
                 });
 #pragma warning restore 612, 618

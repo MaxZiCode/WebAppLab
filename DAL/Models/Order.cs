@@ -10,7 +10,7 @@ namespace WebAppLab.Data.Models
 	{
 		public Guid Id { get; set; }
 		public string UserId { get; set; }
-		public ICollection<Product> Products { get; set; }
+		public ICollection<ProductAmount> ProductAmounts { get; set; }
 		public bool IsCompleted { get; set; }
 	}
 }
