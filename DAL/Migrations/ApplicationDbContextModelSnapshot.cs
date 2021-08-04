@@ -169,7 +169,7 @@ namespace WebAppLab.Data.Migrations
                         .HasColumnType("Date");
 
                     b.Property<string>("Genre")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Logo")
                         .HasColumnType("nvarchar(max)");
@@ -194,9 +194,15 @@ namespace WebAppLab.Data.Migrations
 
                     b.HasIndex("DateCreated");
 
+                    b.HasIndex("Genre");
+
                     b.HasIndex("Name");
 
                     b.HasIndex("Platform");
+
+                    b.HasIndex("Price");
+
+                    b.HasIndex("Rating");
 
                     b.HasIndex("TotalRating");
 
