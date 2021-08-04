@@ -56,7 +56,7 @@ namespace WebAppLab
 				})
 			);
 
-			services.AddDefaultEmailSender(Configuration);
+			services.AddEmailSender(Configuration);
 			services.Configure<AuthData>(Configuration.GetSection("Admin"));
 
 			services.AddTransient<IConfirmEmailSender, ConfirmEmailSender>();
@@ -73,6 +73,7 @@ namespace WebAppLab
 
 			services.AddScoped<IUserChanger, UserChanger>();
 			services.AddScoped<IProductManager, ProductManager>();
+			services.AddPager();
 
 			services.AddCloudinary(Configuration);
 		}
