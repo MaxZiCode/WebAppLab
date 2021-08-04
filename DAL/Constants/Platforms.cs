@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace WebAppLab.Data.Constants
+﻿namespace WebAppLab.Data.Constants
 {
 	public enum Platforms : int
 	{

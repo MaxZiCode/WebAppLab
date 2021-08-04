@@ -3,8 +3,8 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-using WebAppLab.Services;
 using WebAppLab.Attributes;
+using WebAppLab.Services;
 
 namespace WebAppLab.Infrastructure
 {

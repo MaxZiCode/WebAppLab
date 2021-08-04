@@ -1,18 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Reflection;
-
-using Microsoft.AspNetCore.Mvc;
-
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+
+using System;
+using System.Linq;
 
 using WebAppLab.Constants;
 using WebAppLab.Data;
 using WebAppLab.Models;
-using WebAppLab.Data.Constants;
 
 namespace WebAppLab.Attributes
 {
@@ -34,7 +28,7 @@ namespace WebAppLab.Attributes
 
 		public void OnActionExecuted(ActionExecutedContext context)
 		{
-			
+
 		}
 
 		public void OnActionExecuting(ActionExecutingContext context)

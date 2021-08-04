@@ -1,6 +1,9 @@
 ﻿using AutoMapper;
+using AutoMapper.QueryableExtensions;
 
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.EntityFrameworkCore;
 
 using System;
 using System.Collections.Generic;
@@ -13,9 +16,6 @@ using WebAppLab.Data;
 using WebAppLab.Data.Models;
 using WebAppLab.Models;
 using WebAppLab.Wrappers;
-using Microsoft.EntityFrameworkCore;
-using AutoMapper.QueryableExtensions;
-using Microsoft.AspNetCore.Http;
 
 namespace WebAppLab.Services
 {

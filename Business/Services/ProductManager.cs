@@ -2,20 +2,19 @@
 using AutoMapper.QueryableExtensions;
 
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 using WebAppLab.Data;
-using WebAppLab.Data.Models;
-using WebAppLab.Models;
 using WebAppLab.Data.Constants;
-
-using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
+using WebAppLab.Data.Models;
 using WebAppLab.Extensions;
+using WebAppLab.Models;
 
 namespace WebAppLab.Services
 {

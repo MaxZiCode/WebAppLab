@@ -2,7 +2,6 @@
 using System;
 
 using WebAppLab.Data.Constants;
-using WebAppLab.Data.Models;
 
 namespace WebAppLab.Models
 {

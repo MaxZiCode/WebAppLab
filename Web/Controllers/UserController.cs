@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 
 using WebAppLab.Models;
-using WebAppLab.Wrappers;
 using WebAppLab.Services;
 
 namespace WebAppLab.Controllers
