@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 using WebAppLab.Services;
+using WebAppLab.Attributes;
 
 namespace WebAppLab.Infrastructure
 {
@@ -34,6 +35,7 @@ namespace WebAppLab.Infrastructure
 		public static IServiceCollection AddPager(this IServiceCollection services)
 		{
 			services.AddScoped<IProductPager, ProductPager>();
+			services.AddScoped<ValidationSortFilterAttribute>();
 
 			return services;
 		}
