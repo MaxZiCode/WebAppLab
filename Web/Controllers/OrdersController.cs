@@ -13,7 +13,6 @@ using WebAppLab.Data;
 using WebAppLab.Data.Models;
 using WebAppLab.Models;
 using WebAppLab.Extensions;
-using System.Linq.Expressions;
 
 namespace WebAppLab.Controllers
 {
@@ -32,11 +31,10 @@ namespace WebAppLab.Controllers
 		[HttpPost]
 		public async Task<IActionResult> AddProduct([FromBody] AddProductData data)
 		{
-			var userId = HttpContext.User.GetId();
-
-			Order order = await context.Orders.Include(o => o.ProductAmounts).FirstOrDefaultAsync(o => o.UserId == userId);
+			Order order = await GetOrderOfCurrentUser(includeProductAmounts: true);
 			if (order == null)
 			{
+				var userId = HttpContext.User.GetId();
 				order = new() { UserId = userId, ProductAmounts = new HashSet<ProductAmount>() };
 				await context.Orders.AddAsync(order);
 			}
@@ -57,26 +55,29 @@ namespace WebAppLab.Controllers
 		}
 
 		[HttpGet]
-		public async Task<IEnumerable<ProductAmount>> GetProducts(Guid? orderId = null)
+		public async Task<IActionResult> GetProducts(Guid? orderId = null)
 		{
-			Guid? orderToSearch = orderId ?? await GetOrderIdOfCurrentUser();
+			Guid? orderToSearch = orderId ?? (await GetOrderOfCurrentUser())?.Id;
 			if (!orderToSearch.HasValue)
-				return null;
+				return NotFound();
 
 			var productAmountList = await context.ProductAmounts.Where(pa => pa.OrderId == orderToSearch).ToListAsync();
 			if (productAmountList.Count == 0)
-				return null;
+				return NoContent();
 
-			return productAmountList;
+			return Ok(productAmountList);
 		}
 
 		[HttpDelete]
 		public async Task<IActionResult> DeleteProducts([FromBody] IEnumerable<Guid> productIds)
 		{
-			var orderId = await GetOrderIdOfCurrentUser();
+			var order = await GetOrderOfCurrentUser();
+			if (order == null)
+				return NotFound();
+
 			foreach (var productId in productIds)
 			{
-				var productAmount = await context.ProductAmounts.FindAsync(orderId, productId);
+				var productAmount = await context.ProductAmounts.FindAsync(order.Id, productId);
 				if (productAmount != null)
 					context.ProductAmounts.Remove(productAmount);
 			}
@@ -85,12 +86,31 @@ namespace WebAppLab.Controllers
 			return NoContent();
 		}
 
-		private async Task<Guid?> GetOrderIdOfCurrentUser()
+		[HttpPost("buy")]
+		public async Task<IActionResult> BuyProducts()
+		{
+			var order = await GetOrderOfCurrentUser();
+
+			if (order == null)
+				return NotFound();
+
+			order.IsCompleted = true;
+
+			await context.SaveChangesAsync();
+			return NoContent();
+		}
+
+		private async Task<Order> GetOrderOfCurrentUser(bool includeProductAmounts = false)
 		{
 			var userId = HttpContext.User.GetId();
-			var order = await context.Orders
-				.FirstOrDefaultAsync(o => o.UserId == userId);
-			return order?.Id;
+
+			IQueryable<Order> orders = context.Orders
+				.Where(o => !o.IsCompleted);
+
+			if (includeProductAmounts)
+				orders = orders.Include(o => o.ProductAmounts);
+
+			return await orders.FirstOrDefaultAsync(o => o.UserId == userId);
 		}
 	}
 }
