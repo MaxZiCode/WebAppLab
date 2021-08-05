@@ -30,14 +30,14 @@ namespace WebAppLab.Controllers
 		}
 
 		[HttpPost]
-		public async Task<Order> AddProductToOrder([FromBody] AddProductData data)
+		public async Task<Order> AddProduct([FromBody] AddProductData data)
 		{
 			var userId = HttpContext.User.GetId();
 
 			Order order = await context.Orders.Include(o => o.ProductAmounts).FirstOrDefaultAsync(o => o.UserId == userId);
 			if (order == null)
 			{
-				order = new() { UserId = userId, ProductAmounts = new HashSet<ProductAmount>()};
+				order = new() { UserId = userId, ProductAmounts = new HashSet<ProductAmount>() };
 				await context.Orders.AddAsync(order);
 			}
 
@@ -59,14 +59,35 @@ namespace WebAppLab.Controllers
 		[HttpGet]
 		public async Task<IEnumerable<ProductAmount>> GetProducts(Guid? orderId = null)
 		{
-			Expression<Func<Order, bool>> searchOption = 
-				orderId == null ? 
-				(o => o.UserId == HttpContext.User.GetId()) : 
+			// TODO: change.
+			Expression<Func<Order, bool>> searchOption =
+				orderId == null ?
+				(o => o.UserId == HttpContext.User.GetId()) :
 				(o => o.Id == orderId);
 
 			var order = await context.Orders.Include(o => o.ProductAmounts).FirstOrDefaultAsync(searchOption);
 
+			if (order == null || !order.ProductAmounts.Any())
+				return null;
+
 			return order.ProductAmounts;
+		}
+
+		[HttpDelete]
+		public async Task<IActionResult> DeleteProducts([FromBody] IEnumerable<Guid> productIds)
+		{
+			var userId = HttpContext.User.GetId();
+			var orderId = (await context.Orders.FirstOrDefaultAsync(o => o.UserId == userId)).Id;
+
+			foreach (var productId in productIds)
+			{
+				var productAmount = await context.ProductAmounts.FindAsync(orderId, productId);
+				if (productAmount != null)
+					context.ProductAmounts.Remove(productAmount);
+			}
+
+			await context.SaveChangesAsync();
+			return NoContent();
 		}
 	}
 }
