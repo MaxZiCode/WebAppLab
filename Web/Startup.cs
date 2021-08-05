@@ -76,6 +76,7 @@ namespace WebAppLab
 			services.AddPager();
 
 			services.AddCloudinary(Configuration);
+			services.AddScoped<IOrderManager, OrderManager>();
 		}
 
 		public void Configure(
