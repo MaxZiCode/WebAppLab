@@ -59,26 +59,21 @@ namespace WebAppLab.Controllers
 		[HttpGet]
 		public async Task<IEnumerable<ProductAmount>> GetProducts(Guid? orderId = null)
 		{
-			// TODO: change.
-			Expression<Func<Order, bool>> searchOption =
-				orderId == null ?
-				(o => o.UserId == HttpContext.User.GetId()) :
-				(o => o.Id == orderId);
-
-			var order = await context.Orders.Include(o => o.ProductAmounts).FirstOrDefaultAsync(searchOption);
-
-			if (order == null || !order.ProductAmounts.Any())
+			Guid? orderToSearch = orderId ?? await GetOrderIdOfCurrentUser();
+			if (!orderToSearch.HasValue)
 				return null;
 
-			return order.ProductAmounts;
+			var productAmountList = await context.ProductAmounts.Where(pa => pa.OrderId == orderToSearch).ToListAsync();
+			if (productAmountList.Count == 0)
+				return null;
+
+			return productAmountList;
 		}
 
 		[HttpDelete]
 		public async Task<IActionResult> DeleteProducts([FromBody] IEnumerable<Guid> productIds)
 		{
-			var userId = HttpContext.User.GetId();
-			var orderId = (await context.Orders.FirstOrDefaultAsync(o => o.UserId == userId)).Id;
-
+			var orderId = await GetOrderIdOfCurrentUser();
 			foreach (var productId in productIds)
 			{
 				var productAmount = await context.ProductAmounts.FindAsync(orderId, productId);
@@ -88,6 +83,14 @@ namespace WebAppLab.Controllers
 
 			await context.SaveChangesAsync();
 			return NoContent();
+		}
+
+		private async Task<Guid?> GetOrderIdOfCurrentUser()
+		{
+			var userId = HttpContext.User.GetId();
+			var order = await context.Orders
+				.FirstOrDefaultAsync(o => o.UserId == userId);
+			return order?.Id;
 		}
 	}
 }
