@@ -13,6 +13,7 @@ using WebAppLab.Data;
 using WebAppLab.Data.Models;
 using WebAppLab.Models;
 using WebAppLab.Extensions;
+using System.Linq.Expressions;
 
 namespace WebAppLab.Controllers
 {
@@ -53,6 +54,19 @@ namespace WebAppLab.Controllers
 
 			await context.SaveChangesAsync();
 			return order;
+		}
+
+		[HttpGet]
+		public async Task<IEnumerable<ProductAmount>> GetProducts(Guid? orderId = null)
+		{
+			Expression<Func<Order, bool>> searchOption = 
+				orderId == null ? 
+				(o => o.UserId == HttpContext.User.GetId()) : 
+				(o => o.Id == orderId);
+
+			var order = await context.Orders.Include(o => o.ProductAmounts).FirstOrDefaultAsync(searchOption);
+
+			return order.ProductAmounts;
 		}
 	}
 }
