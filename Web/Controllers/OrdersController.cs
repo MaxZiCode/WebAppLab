@@ -30,7 +30,7 @@ namespace WebAppLab.Controllers
 		}
 
 		[HttpPost]
-		public async Task<Order> AddProduct([FromBody] AddProductData data)
+		public async Task<IActionResult> AddProduct([FromBody] AddProductData data)
 		{
 			var userId = HttpContext.User.GetId();
 
@@ -53,7 +53,7 @@ namespace WebAppLab.Controllers
 			}
 
 			await context.SaveChangesAsync();
-			return order;
+			return StatusCode(201, order);
 		}
 
 		[HttpGet]
