@@ -16,6 +16,7 @@ using WebAppLab.Helpers;
 using WebAppLab.Infrastructure;
 using WebAppLab.Models;
 using WebAppLab.Services;
+using WebAppLab.Attributes;
 
 namespace WebAppLab
 {
@@ -76,7 +77,8 @@ namespace WebAppLab
 			services.AddPager();
 
 			services.AddCloudinary(Configuration);
-			services.AddScoped<IOrderManager, OrderManager>();
+			services.AddOrderManager();
+			services.AddScoped<OrderExistFilterAttribute>();
 		}
 
 		public void Configure(
