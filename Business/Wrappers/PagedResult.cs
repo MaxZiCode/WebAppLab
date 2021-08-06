@@ -1,4 +1,6 @@
-﻿namespace WebAppLab.Wrappers
+﻿using System;
+
+namespace WebAppLab.Wrappers
 {
 	public class PagedResult<T>
 	{
@@ -6,17 +8,17 @@
 		public int TotalPages { get; set; }
 		public int PageSize { get; set; }
 		public int TotalRecords { get; set; }
-		public string FirstPage { get; set; }
-		public string LastPage { get; set; }
-		public string NextPage { get; set; }
-		public string PreviousPage { get; set; }
 		public T Data { get; set; }
 
-		public PagedResult(T data, int pageNumber, int pageSize)
+		public PagedResult(T pagedProducts, int totalProducts, int pageSize, int pageNumber)
 		{
-			PageNumber = pageNumber;
+			var totalPages = Convert.ToInt32(Math.Ceiling((double)totalProducts / pageSize));
+
+			Data = pagedProducts;
 			PageSize = pageSize;
-			Data = data;
+			PageNumber = pageNumber;
+			TotalPages = totalPages;
+			TotalRecords = totalProducts;
 		}
 	}
 }

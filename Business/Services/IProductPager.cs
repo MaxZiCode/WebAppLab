@@ -10,6 +10,6 @@ namespace WebAppLab.Services
 {
 	public interface IProductPager
 	{
-		Task<PagedResult<List<ProductViewModel>>> GetPagedResultAsync(HttpContext httpContext, ProductListData data);
+		Task<PagedResult<List<ProductViewModel>>> GetPagedResultAsync(ProductListData data);
 	}
 }

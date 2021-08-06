@@ -23,26 +23,18 @@ namespace WebAppLab.Services
 	{
 		private readonly ApplicationDbContext context;
 		private readonly IMapper mapper;
-		private readonly LinkGenerator linkGenerator;
 
-		private HttpContext httpContext;
-		private ProductListData data;
-
-		public ProductPager(ApplicationDbContext context, IMapper mapper, LinkGenerator linkGenerator)
+		public ProductPager(ApplicationDbContext context, IMapper mapper)
 		{
 			this.context = context;
 			this.mapper = mapper;
-			this.linkGenerator = linkGenerator;
 		}
 
-		public async Task<PagedResult<List<ProductViewModel>>> GetPagedResultAsync(HttpContext httpContext, ProductListData data)
+		public async Task<PagedResult<List<ProductViewModel>>> GetPagedResultAsync(ProductListData data)
 		{
-			this.httpContext = httpContext;
-			this.data = data;
-
 			IQueryable<Product> productsQuery = context.Products;
-			productsQuery = AddFilteringToQuery(productsQuery);
-			productsQuery = AddSortingToQuery(productsQuery);
+			productsQuery = AddFilteringToQuery(productsQuery, data);
+			productsQuery = AddSortingToQuery(productsQuery, data.SortBy, data.IsSortAsc ?? false);
 
 			int totalProducts = await productsQuery.CountAsync();
 			var pagedProducts = await productsQuery
@@ -51,12 +43,10 @@ namespace WebAppLab.Services
 				.ProjectTo<ProductViewModel>(mapper.ConfigurationProvider)
 				.ToListAsync();
 
-			var result = CreatePagedResult(pagedProducts, totalProducts);
-
-			return result;
+			return new PagedResult<List<ProductViewModel>>(pagedProducts, totalProducts, data.PageSize, data.PageNumber);
 		}
 
-		private IQueryable<Product> AddFilteringToQuery(IQueryable<Product> query)
+		private IQueryable<Product> AddFilteringToQuery(IQueryable<Product> query, ProductListData data)
 		{
 			if (data.Genre != null)
 				return query.Where(p => p.Genre == data.Genre);
@@ -67,42 +57,19 @@ namespace WebAppLab.Services
 			return query;
 		}
 
-		private IQueryable<Product> AddSortingToQuery(IQueryable<Product> query)
+		private IQueryable<Product> AddSortingToQuery(IQueryable<Product> query, string sort, bool isSortAsc)
 		{
-			return data.SortBy switch
+			return sort switch
 			{
-				SortBy.Price => AddSortingByProperty(query, p => p.Price),
+				SortBy.Price => AddSortingByProperty(p => p.Price),
 				// Sorting must be anyway for Skip and Take.
-				_ => AddSortingByProperty(query, p => p.TotalRating)
+				_ => AddSortingByProperty(p => p.TotalRating)
 			};
-		}
 
-		private IQueryable<Product> AddSortingByProperty<T>(IQueryable<Product> query, Expression<Func<Product, T>> keySelector) =>
-				data.IsSortAsc ?? false ?
+			IQueryable<Product> AddSortingByProperty<T>(Expression<Func<Product, T>> keySelector) =>
+				isSortAsc ?
 					query.OrderBy(keySelector) :
 					query.OrderByDescending(keySelector);
-
-		private PagedResult<List<ProductViewModel>> CreatePagedResult(List<ProductViewModel> pagedProducts, int totalProducts)
-		{
-			var result = new PagedResult<List<ProductViewModel>>(pagedProducts, data.PageNumber, data.PageSize);
-
-			var totalPages = Convert.ToInt32(Math.Ceiling((double)totalProducts / data.PageSize));
-			result.NextPage = data.PageNumber == totalPages ? null : GenerateLinkToPage(data.PageNumber + 1);
-			result.PreviousPage = data.PageNumber == 1 ? null : GenerateLinkToPage(data.PageNumber - 1);
-			result.FirstPage = GenerateLinkToPage(1);
-			result.LastPage = GenerateLinkToPage(totalPages);
-			result.TotalPages = totalPages;
-			result.TotalRecords = totalProducts;
-
-			return result;
-		}
-
-		private string GenerateLinkToPage(int page)
-		{
-			var dataClone = data.Clone();
-			dataClone.PageNumber = page;
-
-			return linkGenerator.GetUriByAction(httpContext, values: dataClone);
 		}
 	}
 }

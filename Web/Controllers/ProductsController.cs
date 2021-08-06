@@ -26,7 +26,7 @@ namespace WebAppLab.Controllers
 		[ServiceFilter(typeof(ValidationSortFilterAttribute))]
 		public async Task<PagedResult<List<ProductViewModel>>> GetProductsList([FromQuery] ProductListData data)
 		{
-			return await productPager.GetPagedResultAsync(HttpContext, data);
+			return await productPager.GetPagedResultAsync(data);
 		}
 	}
 }
