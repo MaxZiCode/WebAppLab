@@ -10,7 +10,7 @@ namespace WebAppLab.Models
 		public int PageSize { get; set; }
 		public string Genre { get; set; }
 		public Rating? Age { get; set; }
-		public string SortBy { get; set; }
+		public SortBy SortBy { get; set; }
 		public bool? IsSortAsc { get; set; }
 	}
 }

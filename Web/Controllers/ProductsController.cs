@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Routing;
 
 using System.Collections.Generic;
@@ -24,9 +25,12 @@ namespace WebAppLab.Controllers
 
 		[HttpGet("list")]
 		[ServiceFilter(typeof(ValidationSortFilterAttribute))]
-		public async Task<PagedResult<List<ProductViewModel>>> GetProductsList([FromQuery] ProductListData data)
+		public async Task<IActionResult> GetProductsList([FromQuery] ProductListData data)
 		{
-			return await productManager.GetPagedResultAsync(data);
+			if (!ModelState.IsValid)
+				return ValidationProblem(ModelState);
+
+			return Ok(await productManager.GetPagedResultAsync(data));
 		}
 	}
 }

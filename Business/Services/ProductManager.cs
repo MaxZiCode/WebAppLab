@@ -183,7 +183,7 @@ namespace WebAppLab.Services
 			return query;
 		}
 
-		private IQueryable<Product> AddSortingToQuery(IQueryable<Product> query, string sort, bool isSortAsc)
+		private IQueryable<Product> AddSortingToQuery(IQueryable<Product> query, SortBy sort, bool isSortAsc)
 		{
 			return sort switch
 			{

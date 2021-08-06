@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -70,7 +71,7 @@ namespace WebAppLab
 				config.CreateMap<ProductForm, Product>();
 			});
 
-			services.AddControllers().AddNewtonsoftJson();
+			services.AddControllers();
 
 			services.AddScoped<IUserChanger, UserChanger>();
 			services.AddScoped<IProductManager, ProductManager>();
