@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using WebAppLab.Constants;
 using WebAppLab.Data.Constants;
 using WebAppLab.Data.Models;
+using WebAppLab.Extensions;
 using WebAppLab.Models;
 using WebAppLab.Services;
 
@@ -66,8 +67,8 @@ namespace WebAppLab.Controllers
 		[HttpPost("rating")]
 		public async Task<ProductRating> AddRating([FromBody] RatingData ratingData)
 		{
-			var productRating = await productManager.AddRatingAsync(HttpContext.User, ratingData.ProductId, ratingData.Rating);
-			await productManager.UpdateTotalRatingAsync(ratingData.ProductId);
+			var userId = HttpContext.User.GetId();
+			var productRating = await productManager.UpdateTotalRatingAsync(userId, ratingData);
 			return productRating;
 		}
 	}

@@ -119,9 +119,22 @@ namespace WebAppLab.Services
 			await context.SaveChangesAsync();
 		}
 
-		public async Task<ProductRating> AddRatingAsync(ClaimsPrincipal userClaims, Guid productId, int ratingValue)
+		public async Task<ProductRating> UpdateTotalRatingAsync(string userId, RatingData data)
 		{
-			var userId = userClaims.GetId();
+			var productRating = await AddRatingAsync(userId, data.ProductId, data.Rating);
+
+			var product = await context.Products.FindAsync(data.ProductId);
+			var sum = await context.ProductRatings.Where(pr => pr.ProductId == data.ProductId).SumAsync(pr => pr.Rating);
+			var count = await context.ProductRatings.CountAsync();
+
+			product.TotalRating = count != 0 ? sum / count : default;
+			await context.SaveChangesAsync();
+
+			return productRating;
+		}
+
+		public async Task<ProductRating> AddRatingAsync(string userId, Guid productId, int ratingValue)
+		{
 			ProductRating productRating = new()
 			{
 				ProductId = productId,
@@ -141,17 +154,6 @@ namespace WebAppLab.Services
 			await context.SaveChangesAsync();
 
 			return productRating;
-		}
-
-		public async Task UpdateTotalRatingAsync(Guid productId)
-		{
-			var product = await context.Products.FindAsync(productId);
-			var sum = await context.ProductRatings.Where(pr => pr.ProductId == productId).SumAsync(pr => pr.Rating);
-			var count = await context.ProductRatings.CountAsync();
-
-			product.TotalRating = count != 0 ? sum / count : default;
-			context.Update(product);
-			await context.SaveChangesAsync();
 		}
 
 		public async Task<PagedResult<List<ProductViewModel>>> GetPagedResultAsync(ProductListData data)
