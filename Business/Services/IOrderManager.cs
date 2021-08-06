@@ -12,10 +12,10 @@ namespace WebAppLab.Services
 {
 	public interface IOrderManager
 	{
-		Task<Order> AddProductAsync(ClaimsPrincipal user, AddProductData data);
-		Task BuyProductsAsync(ClaimsPrincipal user);
-		Task DeleteProductsAsync(ClaimsPrincipal user, IEnumerable<Guid> productIds);
-		Task<IEnumerable<ProductAmount>> GetProductsAsync(ClaimsPrincipal user, Guid? orderId = null);
-		Task<bool> HasUserOrderAsync(ClaimsPrincipal user);
+		Task<Order> AddProductAsync(string userId, AddProductData data);
+		Task BuyProductsAsync(string userId);
+		Task DeleteProductsAsync(string userId, IEnumerable<Guid> productIds);
+		Task<IEnumerable<ProductAmount>> GetProductsAsync(string userId, Guid? orderId = null);
+		Task<bool> HasUserOrderAsync(string userId);
 	}
 }

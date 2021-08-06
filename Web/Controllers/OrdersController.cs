@@ -24,6 +24,8 @@ namespace WebAppLab.Controllers
 	{
 		private readonly IOrderManager orderManager;
 
+		private string UserId => HttpContext.User.GetId();
+
 		public OrdersController(IOrderManager orderManager)
 		{
 			this.orderManager = orderManager;
@@ -32,18 +34,18 @@ namespace WebAppLab.Controllers
 		[HttpPost]
 		public async Task<IActionResult> AddProduct([FromBody] AddProductData data)
 		{
-			Order order = await orderManager.AddProductAsync(HttpContext.User, data);
+			Order order = await orderManager.AddProductAsync(UserId, data);
 			return StatusCode(201, order);
 		}
 
 		[HttpGet]
 		public async Task<IActionResult> GetProducts(Guid? orderId = null)
 		{
-			var hasUserOrder = await orderManager.HasUserOrderAsync(HttpContext.User);
+			var hasUserOrder = await orderManager.HasUserOrderAsync(UserId);
 			if (!hasUserOrder)
 				return NotFound();
 
-			var products = await orderManager.GetProductsAsync(HttpContext.User, orderId);
+			var products = await orderManager.GetProductsAsync(UserId, orderId);
 			if (!products.Any())
 				return NoContent();
 
@@ -53,22 +55,22 @@ namespace WebAppLab.Controllers
 		[HttpDelete]
 		public async Task<IActionResult> DeleteProducts([FromBody] IEnumerable<Guid> productIds)
 		{
-			var hasUserOrder = await orderManager.HasUserOrderAsync(HttpContext.User);
+			var hasUserOrder = await orderManager.HasUserOrderAsync(UserId);
 			if (!hasUserOrder)
 				return NotFound();
 
-			await orderManager.DeleteProductsAsync(HttpContext.User, productIds);
+			await orderManager.DeleteProductsAsync(UserId, productIds);
 			return NoContent();
 		}
 
 		[HttpPost("buy")]
 		public async Task<IActionResult> BuyProducts()
 		{
-			var hasUserOrder = await orderManager.HasUserOrderAsync(HttpContext.User);
+			var hasUserOrder = await orderManager.HasUserOrderAsync(UserId);
 			if (!hasUserOrder)
 				return NotFound();
 
-			await orderManager.BuyProductsAsync(HttpContext.User);
+			await orderManager.BuyProductsAsync(UserId);
 			return NoContent();
 		}
 	}

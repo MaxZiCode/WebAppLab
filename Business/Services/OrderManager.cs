@@ -1,16 +1,12 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Claims;
-using System.Text;
 using System.Threading.Tasks;
 
 using WebAppLab.Data;
 using WebAppLab.Data.Models;
-using WebAppLab.Extensions;
 using WebAppLab.Models;
 
 namespace WebAppLab.Services
@@ -24,9 +20,8 @@ namespace WebAppLab.Services
 			this.context = context;
 		}
 
-		public async Task<Order> AddProductAsync(ClaimsPrincipal user, AddProductData data)
+		public async Task<Order> AddProductAsync(string userId, AddProductData data)
 		{
-			var userId = user.GetId();
 			Order order = await GetOrderForUserAsync(userId, includeProductAmounts: true);
 			if (order == null)
 			{
@@ -49,9 +44,9 @@ namespace WebAppLab.Services
 			return order;
 		}
 
-		public async Task<IEnumerable<ProductAmount>> GetProductsAsync(ClaimsPrincipal user, Guid? orderId = null)
+		public async Task<IEnumerable<ProductAmount>> GetProductsAsync(string userId, Guid? orderId = null)
 		{
-			Guid? orderToSearch = orderId ?? (await GetOrderForUserAsync(user))?.Id;
+			Guid? orderToSearch = orderId ?? (await GetOrderForUserAsync(userId))?.Id;
 			if (!orderToSearch.HasValue)
 				return null;
 
@@ -59,9 +54,9 @@ namespace WebAppLab.Services
 			return productAmountList;
 		}
 
-		public async Task DeleteProductsAsync(ClaimsPrincipal user, IEnumerable<Guid> productIds)
+		public async Task DeleteProductsAsync(string userId, IEnumerable<Guid> productIds)
 		{
-			var order = await GetOrderForUserAsync(user, includeProductAmounts: true);
+			var order = await GetOrderForUserAsync(userId, includeProductAmounts: true);
 			if (order == null)
 				return;
 
@@ -75,9 +70,9 @@ namespace WebAppLab.Services
 			await context.SaveChangesAsync();
 		}
 
-		public async Task BuyProductsAsync(ClaimsPrincipal user)
+		public async Task BuyProductsAsync(string userId)
 		{
-			var order = await GetOrderForUserAsync(user);
+			var order = await GetOrderForUserAsync(userId);
 			if (order == null)
 				return;
 
@@ -86,13 +81,7 @@ namespace WebAppLab.Services
 			await context.SaveChangesAsync();
 		}
 
-		public async Task<bool> HasUserOrderAsync(ClaimsPrincipal user) => await GetOrderForUserAsync(user) != null;
-
-		private async Task<Order> GetOrderForUserAsync(ClaimsPrincipal user, bool includeProductAmounts = false)
-		{
-			var userId = user.GetId();
-			return await GetOrderForUserAsync(userId, includeProductAmounts);
-		}
+		public async Task<bool> HasUserOrderAsync(string userId) => await GetOrderForUserAsync(userId) != null;
 
 		private async Task<Order> GetOrderForUserAsync(string userId, bool includeProductAmounts = false)
 		{
