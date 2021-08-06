@@ -31,13 +31,5 @@ namespace WebAppLab.Infrastructure
 
 			return services;
 		}
-
-		public static IServiceCollection AddPager(this IServiceCollection services)
-		{
-			services.AddScoped<IProductPager, ProductPager>();
-			services.AddScoped<ValidationSortFilterAttribute>();
-
-			return services;
-		}
 	}
 }

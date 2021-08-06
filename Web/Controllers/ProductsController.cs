@@ -15,18 +15,18 @@ namespace WebAppLab.Controllers
 	[ApiController]
 	public class ProductsController : ControllerBase
 	{
-		private readonly IProductPager productPager;
+		private readonly IProductManager productManager;
 
-		public ProductsController(IProductPager productPager)
+		public ProductsController(IProductManager productManager)
 		{
-			this.productPager = productPager;
+			this.productManager = productManager;
 		}
 
 		[HttpGet("list")]
 		[ServiceFilter(typeof(ValidationSortFilterAttribute))]
 		public async Task<PagedResult<List<ProductViewModel>>> GetProductsList([FromQuery] ProductListData data)
 		{
-			return await productPager.GetPagedResultAsync(data);
+			return await productManager.GetPagedResultAsync(data);
 		}
 	}
 }

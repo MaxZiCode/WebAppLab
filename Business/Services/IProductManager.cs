@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using WebAppLab.Data.Constants;
 using WebAppLab.Data.Models;
 using WebAppLab.Models;
+using WebAppLab.Wrappers;
 
 namespace WebAppLab.Services
 {
@@ -20,5 +21,6 @@ namespace WebAppLab.Services
 		Task DeleteAsync(Guid id);
 		Task<ProductRating> AddRatingAsync(ClaimsPrincipal userClaims, Guid productId, int ratingValue);
 		Task UpdateTotalRatingAsync(Guid productId);
+		Task<PagedResult<List<ProductViewModel>>> GetPagedResultAsync(ProductListData data);
 	}
 }

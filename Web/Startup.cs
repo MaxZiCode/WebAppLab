@@ -10,6 +10,7 @@ using Microsoft.OpenApi.Models;
 
 using Serilog;
 
+using WebAppLab.Attributes;
 using WebAppLab.Data;
 using WebAppLab.Data.Models;
 using WebAppLab.Helpers;
@@ -73,7 +74,7 @@ namespace WebAppLab
 
 			services.AddScoped<IUserChanger, UserChanger>();
 			services.AddScoped<IProductManager, ProductManager>();
-			services.AddPager();
+			services.AddScoped<ValidationSortFilterAttribute>();
 
 			services.AddCloudinary(Configuration);
 		}
