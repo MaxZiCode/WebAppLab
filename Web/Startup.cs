@@ -71,11 +71,11 @@ namespace WebAppLab
 				config.CreateMap<ProductForm, Product>();
 			});
 
-			services.AddControllers();
+			services.AddControllers().ConfigureApiBehaviorOptions(options => options.SuppressModelStateInvalidFilter = true);
 
 			services.AddScoped<IUserChanger, UserChanger>();
 			services.AddScoped<IProductManager, ProductManager>();
-			services.AddScoped<ValidationSortFilterAttribute>();
+			services.AddScoped<ValidationFilterSoftActionFilter>();
 
 			services.AddCloudinary(Configuration);
 		}

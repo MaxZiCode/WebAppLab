@@ -32,11 +32,5 @@ namespace WebAppLab.Helpers
 		public static bool CheckEmail(string email) => regexEmail.IsMatch(email);
 
 		public static bool CheckPhoneNumber(string phoneNumber) => regexPhoneNumber.IsMatch(phoneNumber);
-
-		public static bool CheckGenre(string genre, ApplicationDbContext context)
-		{
-			var foundProduct = context.Products.FirstOrDefault(p => p.Genre == genre);
-			return foundProduct != null;
-		}
 	}
 }

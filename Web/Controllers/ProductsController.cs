@@ -24,7 +24,7 @@ namespace WebAppLab.Controllers
 		}
 
 		[HttpGet("list")]
-		[ServiceFilter(typeof(ValidationSortFilterAttribute))]
+		[ServiceFilter(typeof(ValidationFilterSoftActionFilter))]
 		public async Task<IActionResult> GetProductsList([FromQuery] ProductListData data)
 		{
 			if (!ModelState.IsValid)

@@ -11,11 +11,11 @@ using WebAppLab.Models;
 
 namespace WebAppLab.Attributes
 {
-	public class ValidationSortFilterAttribute : IActionFilter
+	public class ValidationFilterSoftActionFilter : IActionFilter
 	{ 
 		private readonly ApplicationDbContext dBcontext;
 
-		public ValidationSortFilterAttribute(ApplicationDbContext context)
+		public ValidationFilterSoftActionFilter(ApplicationDbContext context)
 		{
 			dBcontext = context;
 		}
@@ -36,11 +36,6 @@ namespace WebAppLab.Attributes
 			}
 
 			var data = (ProductListData)param.Value;
-			if (data.Genre != null && !CheckUtility.CheckGenre(data.Genre, dBcontext))
-			{
-				context.ModelState.AddModelError(nameof(ProductListData.Genre), $"The value '{data.Genre}' is invalid.");
-				return;
-			}
 		}
 	}
 }
