@@ -30,7 +30,7 @@ namespace WebAppLab.Controllers
 			if (!ModelState.IsValid)
 				return ValidationProblem(ModelState);
 
-			return Ok(await productManager.GetPagedResultAsync(data));
+			return Ok(await productManager.GetPagesAsync(data));
 		}
 	}
 }

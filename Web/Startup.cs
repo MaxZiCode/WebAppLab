@@ -71,7 +71,7 @@ namespace WebAppLab
 				config.CreateMap<ProductForm, Product>();
 			});
 
-			services.AddControllers().ConfigureApiBehaviorOptions(options => options.SuppressModelStateInvalidFilter = true);
+			services.AddControllers();
 
 			services.AddScoped<IUserChanger, UserChanger>();
 			services.AddScoped<IProductManager, ProductManager>();

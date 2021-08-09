@@ -1,25 +1,17 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 
+using System;
 using System.Linq;
 
-using WebAppLab.Data;
-using WebAppLab.Helpers;
+using WebAppLab.Data.Constants;
 using WebAppLab.Models;
 
 namespace WebAppLab.Attributes
 {
 	public class ValidationFilterSoftActionFilter : IActionFilter
-	{ 
-		private readonly ApplicationDbContext dBcontext;
-
-		public ValidationFilterSoftActionFilter(ApplicationDbContext context)
-		{
-			dBcontext = context;
-		}
-
+	{
 		public void OnActionExecuted(ActionExecutedContext context)
 		{
 			
@@ -36,6 +28,28 @@ namespace WebAppLab.Attributes
 			}
 
 			var data = (ProductListData)param.Value;
+
+			var modelState = context.ModelState;
+			AddErrorIfInvalidEnum<Rating>(modelState, nameof(data.Age), data.Age);
+			AddErrorIfInvalidEnum<SortBy>(modelState, nameof(data.SortBy), data.SortBy);
+
+			if (!modelState.IsValid)
+			{
+				var validationDetails = new ValidationProblemDetails(modelState);
+				context.Result = new BadRequestObjectResult(validationDetails);
+			}
+		}
+
+		private void AddErrorIfInvalidEnum<T>(ModelStateDictionary modelstate, string key, string value) where T: struct
+		{
+			if (value == null)
+				return;
+
+			var isParsed = Enum.TryParse(value, ignoreCase: true, out T parsedValue);
+			if (isParsed && Enum.IsDefined(typeof(T), parsedValue))
+				return;
+			
+			modelstate.AddModelError(key, $"The value '{value}' is invalid.");
 		}
 	}
 }
