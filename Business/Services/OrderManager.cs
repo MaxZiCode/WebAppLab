@@ -48,7 +48,7 @@ namespace WebAppLab.Services
 		{
 			Guid? orderToSearch = orderId ?? (await GetOrderForUserAsync(userId))?.Id;
 			if (!orderToSearch.HasValue)
-				return null;
+				return Enumerable.Empty<ProductAmount>();
 
 			var productAmountList = await context.ProductAmounts.Where(pa => pa.OrderId == orderToSearch).ToListAsync();
 			return productAmountList;
@@ -80,8 +80,6 @@ namespace WebAppLab.Services
 
 			await context.SaveChangesAsync();
 		}
-
-		public async Task<bool> HasUserOrderAsync(string userId) => await GetOrderForUserAsync(userId) != null;
 
 		private async Task<Order> GetOrderForUserAsync(string userId, bool includeProductAmounts = false)
 		{

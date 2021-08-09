@@ -78,7 +78,6 @@ namespace WebAppLab
 
 			services.AddCloudinary(Configuration);
 			services.AddOrderManager();
-			services.AddScoped<OrderExistFilterAttribute>();
 		}
 
 		public void Configure(

@@ -7,9 +7,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-using Microsoft.EntityFrameworkCore;
-
-using WebAppLab.Attributes;
 using WebAppLab.Data.Models;
 using WebAppLab.Models;
 using WebAppLab.Extensions;
@@ -39,7 +36,6 @@ namespace WebAppLab.Controllers
 		}
 
 		[HttpGet]
-		[ServiceFilter(typeof(OrderExistFilterAttribute))]
 		public async Task<IActionResult> GetProducts(Guid? orderId = null)
 		{
 			var products = await orderManager.GetProductsAsync(UserId, orderId);
@@ -50,7 +46,6 @@ namespace WebAppLab.Controllers
 		}
 
 		[HttpDelete]
-		[ServiceFilter(typeof(OrderExistFilterAttribute))]
 		public async Task<IActionResult> DeleteProducts([FromBody] IEnumerable<Guid> productIds)
 		{
 			await orderManager.DeleteProductsAsync(UserId, productIds);
@@ -58,7 +53,6 @@ namespace WebAppLab.Controllers
 		}
 
 		[HttpPost("buy")]
-		[ServiceFilter(typeof(OrderExistFilterAttribute))]
 		public async Task<IActionResult> BuyProducts()
 		{
 			await orderManager.BuyProductsAsync(UserId);

@@ -16,6 +16,5 @@ namespace WebAppLab.Services
 		Task BuyProductsAsync(string userId);
 		Task DeleteProductsAsync(string userId, IEnumerable<Guid> productIds);
 		Task<IEnumerable<ProductAmount>> GetProductsAsync(string userId, Guid? orderId = null);
-		Task<bool> HasUserOrderAsync(string userId);
 	}
 }
