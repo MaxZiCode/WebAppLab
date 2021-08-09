@@ -19,7 +19,7 @@ namespace WebAppLab.Services
 		Task<ProductViewModel> CreateAsync(ProductForm productData);
 		Task<ProductViewModel> UpdateAsync(ProductForm productData);
 		Task DeleteAsync(Guid id);
-		Task<ProductRating> UpdateTotalRatingAsync(string userId, RatingData data);
+		Task<ProductRating> AddRatingAndUpdateTotalAsync(string userId, RatingData data);
 		Task<PagedResult<List<ProductViewModel>>> GetPagesAsync(ProductListData data);
 	}
 }

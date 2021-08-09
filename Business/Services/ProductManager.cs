@@ -119,41 +119,33 @@ namespace WebAppLab.Services
 			await context.SaveChangesAsync();
 		}
 
-		public async Task<ProductRating> UpdateTotalRatingAsync(string userId, RatingData data)
+		public async Task<ProductRating> AddRatingAndUpdateTotalAsync(string userId, RatingData data)
 		{
-			var productRating = await AddRatingAsync(userId, data.ProductId, data.Rating);
+			ProductRating productRating = new()
+			{
+				ProductId = data.ProductId,
+				UserId = userId,
+				Rating = data.Rating
+			};
 
-			var product = await context.Products.FindAsync(data.ProductId);
-			var sum = await context.ProductRatings.Where(pr => pr.ProductId == data.ProductId).SumAsync(pr => pr.Rating);
-			var count = await context.ProductRatings.CountAsync();
+			if (!await context.ProductRatings.ContainsAsync(productRating))
+				await context.ProductRatings.AddAsync(productRating);
+			else
+				context.ProductRatings.Update(productRating);
 
-			product.TotalRating = count != 0 ? sum / count : default;
+			await UpdateTotalRatingAsync(data.ProductId);
 			await context.SaveChangesAsync();
 
 			return productRating;
 		}
 
-		public async Task<ProductRating> AddRatingAsync(string userId, Guid productId, int ratingValue)
+		private async Task UpdateTotalRatingAsync(Guid productId)
 		{
-			ProductRating productRating = new()
-			{
-				ProductId = productId,
-				UserId = userId,
-				Rating = ratingValue
-			};
+			var product = await context.Products.FindAsync(productId);
+			var sum = await context.ProductRatings.Where(pr => pr.ProductId == productId).SumAsync(pr => pr.Rating);
+			var count = await context.ProductRatings.CountAsync();
 
-			if (!await context.ProductRatings.ContainsAsync(productRating))
-			{
-				await context.ProductRatings.AddAsync(productRating);
-			}
-			else
-			{
-				context.ProductRatings.Update(productRating);
-			}
-
-			await context.SaveChangesAsync();
-
-			return productRating;
+			product.TotalRating = count != 0 ? sum / count : default;
 		}
 
 		public async Task<PagedResult<List<ProductViewModel>>> GetPagesAsync(ProductListData data)
