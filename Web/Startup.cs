@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,7 +10,6 @@ using Microsoft.OpenApi.Models;
 
 using Serilog;
 
-using WebAppLab.Attributes;
 using WebAppLab.Data;
 using WebAppLab.Data.Models;
 using WebAppLab.Helpers;
@@ -75,7 +73,6 @@ namespace WebAppLab
 
 			services.AddScoped<IUserChanger, UserChanger>();
 			services.AddScoped<IProductManager, ProductManager>();
-			services.AddScoped<ValidationFilterSoftActionFilter>();
 
 			services.AddCloudinary(Configuration);
 		}

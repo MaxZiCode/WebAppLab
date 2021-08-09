@@ -152,7 +152,7 @@ namespace WebAppLab.Services
 		{
 			IQueryable<Product> productsQuery = context.Products;
 			productsQuery = AddFilteringToQuery(productsQuery, data);
-			productsQuery = AddSortingToQuery(productsQuery, data.SortBy, data.IsSortAsc ?? false);
+			productsQuery = AddSortingToQuery(productsQuery, data.SortBy ?? SortBy.TotalRating, data.IsSortAsc ?? false);
 
 			int totalProducts = await productsQuery.CountAsync();
 			var pagedProducts = await productsQuery
@@ -167,23 +167,17 @@ namespace WebAppLab.Services
 		private IQueryable<Product> AddFilteringToQuery(IQueryable<Product> query, ProductListData data)
 		{
 			if (data.Genre != null)
-			{
 				return query.Where(p => p.Genre == data.Genre);
-			}
 
 			if (data.Age != null)
-			{
-				Rating dataAge = Enum.Parse<Rating>(data.Age);
-				return query.Where(p => p.Rating == dataAge);
-			}
+				return query.Where(p => p.Rating == data.Age);
 
 			return query;
 		}
 
-		private IQueryable<Product> AddSortingToQuery(IQueryable<Product> query, string sort, bool isSortAsc)
+		private IQueryable<Product> AddSortingToQuery(IQueryable<Product> query, SortBy sort, bool isSortAsc)
 		{
-			SortBy sortBy = sort == null ? SortBy.TotalRating : Enum.Parse<SortBy>(sort, ignoreCase: true);
-			return sortBy switch
+			return sort switch
 			{
 				SortBy.Price => AddSortingByProperty(p => p.Price),
 				_ => AddSortingByProperty(p => p.TotalRating)

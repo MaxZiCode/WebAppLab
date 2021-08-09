@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Routing;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-using WebAppLab.Attributes;
 using WebAppLab.Models;
 using WebAppLab.Services;
 using WebAppLab.Wrappers;
@@ -24,7 +23,6 @@ namespace WebAppLab.Controllers
 		}
 
 		[HttpGet("list")]
-		[ServiceFilter(typeof(ValidationFilterSoftActionFilter))]
 		public async Task<IActionResult> GetProductsList([FromQuery] ProductListData data)
 		{
 			if (!ModelState.IsValid)
