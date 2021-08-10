@@ -4,8 +4,6 @@ using Microsoft.EntityFrameworkCore;
 
 using System.Reflection;
 
-using WebAppLab.Data.Configurations;
-
 using WebAppLab.Data.Models;
 
 namespace WebAppLab.Data

@@ -1,15 +1,14 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 using WebAppLab.Data.Models;
-using WebAppLab.Models;
 using WebAppLab.Extensions;
+using WebAppLab.Models;
 using WebAppLab.Services;
 
 namespace WebAppLab.Controllers
