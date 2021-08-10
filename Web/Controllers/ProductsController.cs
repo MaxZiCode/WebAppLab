@@ -25,9 +25,6 @@ namespace WebAppLab.Controllers
 		[HttpGet("list")]
 		public async Task<IActionResult> GetProductsList([FromQuery] ProductListData data)
 		{
-			if (!ModelState.IsValid)
-				return ValidationProblem(ModelState);
-
 			return Ok(await productManager.GetPagesAsync(data));
 		}
 	}
