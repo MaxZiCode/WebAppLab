@@ -30,5 +30,11 @@ namespace WebAppLab.Infrastructure
 
 			return services;
 		}
+
+		public static IServiceCollection AddOrderManager(this IServiceCollection services)
+		{
+			services.AddScoped<IOrderManager, OrderManager>();
+			return services;
+		}
 	}
 }

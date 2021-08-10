@@ -150,6 +150,27 @@ namespace WebAppLab.Data.Migrations
                     b.ToTable("AspNetUserTokens");
                 });
 
+            modelBuilder.Entity("WebAppLab.Data.Models.Order", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsCompleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("Orders");
+                });
+
             modelBuilder.Entity("WebAppLab.Data.Models.Product", b =>
                 {
                     b.Property<Guid>("Id")
@@ -169,7 +190,7 @@ namespace WebAppLab.Data.Migrations
                         .HasColumnType("Date");
 
                     b.Property<string>("Genre")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Logo")
                         .HasColumnType("nvarchar(max)");
@@ -194,9 +215,15 @@ namespace WebAppLab.Data.Migrations
 
                     b.HasIndex("DateCreated");
 
+                    b.HasIndex("Genre");
+
                     b.HasIndex("Name");
 
                     b.HasIndex("Platform");
+
+                    b.HasIndex("Price");
+
+                    b.HasIndex("Rating");
 
                     b.HasIndex("TotalRating");
 
@@ -403,6 +430,26 @@ namespace WebAppLab.Data.Migrations
                         });
                 });
 
+            modelBuilder.Entity("WebAppLab.Data.Models.ProductAmount", b =>
+                {
+                    b.Property<Guid>("OrderId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Amount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
+                    b.HasKey("OrderId", "ProductId");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("ProductAmounts");
+                });
+
             modelBuilder.Entity("WebAppLab.Data.Models.ProductRating", b =>
                 {
                     b.Property<Guid>("ProductId")
@@ -549,6 +596,30 @@ namespace WebAppLab.Data.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("WebAppLab.Data.Models.Order", b =>
+                {
+                    b.HasOne("WebAppLab.Data.Models.User", null)
+                        .WithOne("Order")
+                        .HasForeignKey("WebAppLab.Data.Models.Order", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("WebAppLab.Data.Models.ProductAmount", b =>
+                {
+                    b.HasOne("WebAppLab.Data.Models.Order", null)
+                        .WithMany("ProductAmounts")
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("WebAppLab.Data.Models.Product", null)
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("WebAppLab.Data.Models.ProductRating", b =>
                 {
                     b.HasOne("WebAppLab.Data.Models.Product", null)
@@ -564,6 +635,11 @@ namespace WebAppLab.Data.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("WebAppLab.Data.Models.Order", b =>
+                {
+                    b.Navigation("ProductAmounts");
+                });
+
             modelBuilder.Entity("WebAppLab.Data.Models.Product", b =>
                 {
                     b.Navigation("ProductRatings");
@@ -571,6 +647,8 @@ namespace WebAppLab.Data.Migrations
 
             modelBuilder.Entity("WebAppLab.Data.Models.User", b =>
                 {
+                    b.Navigation("Order");
+
                     b.Navigation("ProductRatings");
                 });
 #pragma warning restore 612, 618
