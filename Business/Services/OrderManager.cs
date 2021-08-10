@@ -47,7 +47,7 @@ namespace WebAppLab.Services
 		public async Task<IEnumerable<ProductAmount>> GetProductsAsync(string userId, Guid? orderId = null)
 		{
 			Guid? orderToSearch = orderId ?? (await GetOrderForUserAsync(userId))?.Id;
-			if (!orderToSearch.HasValue)
+			if (orderToSearch == null)
 				return Enumerable.Empty<ProductAmount>();
 
 			var productAmountList = await context.ProductAmounts.Where(pa => pa.OrderId == orderToSearch).ToListAsync();

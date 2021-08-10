@@ -39,8 +39,6 @@ namespace WebAppLab.Controllers
 		public async Task<IActionResult> GetProducts(Guid? orderId = null)
 		{
 			var products = await orderManager.GetProductsAsync(UserId, orderId);
-			if (!products.Any())
-				return NoContent();
 
 			return Ok(products);
 		}
