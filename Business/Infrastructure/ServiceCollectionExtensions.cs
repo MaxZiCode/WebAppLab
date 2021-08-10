@@ -9,9 +9,9 @@ namespace WebAppLab.Infrastructure
 {
 	public static class ServiceCollectionExtensions
 	{
-		public static IServiceCollection AddDefaultEmailSender(this IServiceCollection services, IConfiguration configuration)
+		public static IServiceCollection AddEmailSender(this IServiceCollection services, IConfiguration configuration)
 		{
-			services.Configure<SmtpSettings>(configuration.GetSection(nameof(SmtpSettings)));
+			services.Configure<SmtpSettings>(configuration.GetSection("SmtpSettings"));
 			services.AddTransient<IEmailSender, EmailSender>();
 			return services;
 		}

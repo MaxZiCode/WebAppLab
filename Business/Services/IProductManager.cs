@@ -1,11 +1,13 @@
-﻿using Microsoft.AspNetCore.Http;
-
+﻿
 using System;
 using System.Collections.Generic;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 using WebAppLab.Data.Constants;
+using WebAppLab.Data.Models;
 using WebAppLab.Models;
+using WebAppLab.Wrappers;
 
 namespace WebAppLab.Services
 {
@@ -17,5 +19,7 @@ namespace WebAppLab.Services
 		Task<ProductViewModel> CreateAsync(ProductForm productData);
 		Task<ProductViewModel> UpdateAsync(ProductForm productData);
 		Task DeleteAsync(Guid id);
+		Task<ProductRating> AddRatingAndUpdateTotalAsync(string userId, RatingData data);
+		Task<PagedResult<List<ProductViewModel>>> GetPagesAsync(ProductListData data);
 	}
 }

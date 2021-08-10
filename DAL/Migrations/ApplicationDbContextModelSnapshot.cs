@@ -156,8 +156,23 @@ namespace WebAppLab.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("Background")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Count")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("DateCreated")
                         .HasColumnType("Date");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("Date");
+
+                    b.Property<string>("Genre")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Logo")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -166,12 +181,24 @@ namespace WebAppLab.Data.Migrations
                     b.Property<int>("Platform")
                         .HasColumnType("int");
 
+                    b.Property<decimal>("Price")
+                        .HasColumnType("DECIMAL(16,4)");
+
+                    b.Property<int>("Rating")
+                        .HasColumnType("int");
+
                     b.Property<int>("TotalRating")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Name", "Platform", "DateCreated", "TotalRating");
+                    b.HasIndex("DateCreated");
+
+                    b.HasIndex("Name");
+
+                    b.HasIndex("Platform");
+
+                    b.HasIndex("TotalRating");
 
                     b.ToTable("Products");
 
@@ -179,147 +206,219 @@ namespace WebAppLab.Data.Migrations
                         new
                         {
                             Id = new Guid("90faa83b-0427-44b5-8d35-5f81bbbad1c4"),
+                            Count = 0,
                             DateCreated = new DateTime(2021, 5, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Biomutant",
                             Platform = 1,
+                            Price = 0m,
+                            Rating = 0,
                             TotalRating = 64
                         },
                         new
                         {
                             Id = new Guid("1663cfef-1671-4216-839d-8dc119b27bf2"),
+                            Count = 0,
                             DateCreated = new DateTime(2021, 4, 23, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "NieR Replicant ver.1.22474487139",
                             Platform = 2,
+                            Price = 0m,
+                            Rating = 0,
                             TotalRating = 83
                         },
                         new
                         {
                             Id = new Guid("f1b8089d-5dd7-4c37-8053-ddec627ec63d"),
+                            Count = 0,
                             DateCreated = new DateTime(2021, 7, 9, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Monster Hunter Stories 2: Wings of Ruin",
                             Platform = 3,
+                            Price = 0m,
+                            Rating = 0,
                             TotalRating = 81
                         },
                         new
                         {
                             Id = new Guid("237c3ba6-5fdc-4644-ad9b-1ab8a629edfa"),
+                            Count = 0,
                             DateCreated = new DateTime(2021, 6, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Scarlet Nexus",
                             Platform = 5,
+                            Price = 0m,
+                            Rating = 0,
                             TotalRating = 77
                         },
                         new
                         {
                             Id = new Guid("0260ff54-243e-4cf1-8332-77976d00c3bc"),
+                            Count = 0,
                             DateCreated = new DateTime(2021, 6, 22, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Dungeons & Dragons: Dark Alliance",
                             Platform = 4,
+                            Price = 0m,
+                            Rating = 0,
                             TotalRating = 58
                         },
                         new
                         {
                             Id = new Guid("cf6b66bc-a9d2-4aec-a9c6-e8322c079e03"),
+                            Count = 0,
                             DateCreated = new DateTime(2021, 5, 14, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Mass Effect Legendary Edition",
                             Platform = 2,
+                            Price = 0m,
+                            Rating = 0,
                             TotalRating = 90
                         },
                         new
                         {
                             Id = new Guid("44e2e106-5a13-4863-8326-a01e340883e4"),
+                            Count = 0,
                             DateCreated = new DateTime(2021, 6, 10, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Final Fantasy VII Remake Intergrade",
                             Platform = 4,
+                            Price = 0m,
+                            Rating = 0,
                             TotalRating = 89
                         },
                         new
                         {
                             Id = new Guid("c99a81f9-2056-41a3-a968-63238637b3f3"),
+                            Count = 0,
                             DateCreated = new DateTime(2021, 6, 9, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Green Hell",
                             Platform = 2,
+                            Price = 0m,
+                            Rating = 0,
                             TotalRating = 85
                         },
                         new
                         {
                             Id = new Guid("cf64f991-31f1-4fa2-8db6-f274bc8640d5"),
+                            Count = 0,
                             DateCreated = new DateTime(2021, 6, 8, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Guilty Gear -Strive-",
                             Platform = 1,
+                            Price = 0m,
+                            Rating = 0,
                             TotalRating = 83
                         },
                         new
                         {
                             Id = new Guid("659d2773-00f2-4d23-9208-7dab6f7eccfa"),
+                            Count = 0,
                             DateCreated = new DateTime(2021, 4, 22, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "ScourgeBringer",
                             Platform = 1,
+                            Price = 0m,
+                            Rating = 0,
                             TotalRating = 81
                         },
                         new
                         {
                             Id = new Guid("64d67d60-9b65-415b-b826-942bdfb01605"),
+                            Count = 0,
                             DateCreated = new DateTime(2018, 10, 26, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Red Dead Redemption 2",
                             Platform = 1,
+                            Price = 0m,
+                            Rating = 0,
                             TotalRating = 97
                         },
                         new
                         {
                             Id = new Guid("19f1fa2f-bba6-4d87-a727-6187e02b2644"),
+                            Count = 0,
                             DateCreated = new DateTime(2020, 3, 31, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Persona 5 Royal",
                             Platform = 1,
+                            Price = 0m,
+                            Rating = 0,
                             TotalRating = 95
                         },
                         new
                         {
                             Id = new Guid("36e9cea7-27f6-4f85-a078-156e7817a75a"),
+                            Count = 0,
                             DateCreated = new DateTime(2021, 6, 10, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Chicory: A Colorful Tale",
                             Platform = 0,
+                            Price = 0m,
+                            Rating = 0,
                             TotalRating = 89
                         },
                         new
                         {
                             Id = new Guid("c29337a4-cebb-47fd-b9a3-3f60e16468a0"),
+                            Count = 0,
                             DateCreated = new DateTime(2021, 6, 15, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Wildermyth",
                             Platform = 0,
+                            Price = 0m,
+                            Rating = 0,
                             TotalRating = 89
                         },
                         new
                         {
                             Id = new Guid("752b8b53-c787-4a8e-84f8-a74fafc04e96"),
+                            Count = 0,
                             DateCreated = new DateTime(2021, 5, 20, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Lacuna - A Sci-Fi Noir Adventure",
                             Platform = 0,
+                            Price = 0m,
+                            Rating = 0,
                             TotalRating = 88
                         },
                         new
                         {
                             Id = new Guid("cdc22ab5-abf1-4c20-8bd6-3220c0c4d7a6"),
+                            Count = 0,
                             DateCreated = new DateTime(2021, 6, 3, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Astalon: Tears of the Earth",
                             Platform = 0,
+                            Price = 0m,
+                            Rating = 0,
                             TotalRating = 87
                         },
                         new
                         {
                             Id = new Guid("19dd47b4-8f29-4a27-8b3c-113d799c7b08"),
+                            Count = 0,
                             DateCreated = new DateTime(2021, 7, 16, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "F1 2021",
                             Platform = 0,
+                            Price = 0m,
+                            Rating = 0,
                             TotalRating = 86
                         },
                         new
                         {
                             Id = new Guid("446c1de7-0278-445c-a292-1f3a5a6ae4c3"),
+                            Count = 0,
                             DateCreated = new DateTime(2021, 5, 6, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Metro Exodus: Complete Edition",
                             Platform = 0,
+                            Price = 0m,
+                            Rating = 0,
                             TotalRating = 85
                         });
+                });
+
+            modelBuilder.Entity("WebAppLab.Data.Models.ProductRating", b =>
+                {
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("Rating")
+                        .HasColumnType("int");
+
+                    b.HasKey("ProductId", "UserId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("ProductRatings");
                 });
 
             modelBuilder.Entity("WebAppLab.Data.Models.User", b =>
@@ -448,6 +547,31 @@ namespace WebAppLab.Data.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("WebAppLab.Data.Models.ProductRating", b =>
+                {
+                    b.HasOne("WebAppLab.Data.Models.Product", null)
+                        .WithMany("ProductRatings")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("WebAppLab.Data.Models.User", null)
+                        .WithMany("ProductRatings")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("WebAppLab.Data.Models.Product", b =>
+                {
+                    b.Navigation("ProductRatings");
+                });
+
+            modelBuilder.Entity("WebAppLab.Data.Models.User", b =>
+                {
+                    b.Navigation("ProductRatings");
                 });
 #pragma warning restore 612, 618
         }

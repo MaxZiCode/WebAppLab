@@ -56,7 +56,7 @@ namespace WebAppLab
 				})
 			);
 
-			services.AddDefaultEmailSender(Configuration);
+			services.AddEmailSender(Configuration);
 			services.Configure<AuthData>(Configuration.GetSection("Admin"));
 
 			services.AddTransient<IConfirmEmailSender, ConfirmEmailSender>();
@@ -69,7 +69,7 @@ namespace WebAppLab
 				config.CreateMap<ProductForm, Product>();
 			});
 
-			services.AddControllers().AddNewtonsoftJson();
+			services.AddControllers();
 
 			services.AddScoped<IUserChanger, UserChanger>();
 			services.AddScoped<IProductManager, ProductManager>();

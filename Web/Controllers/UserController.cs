@@ -32,7 +32,7 @@ namespace WebAppLab.Controllers
 			if (!result.Succeeded)
 				return BadRequest(new { errorMessage = result.FailMessage });
 
-			return result.Value;
+			return result.Data;
 		}
 
 		[HttpPatch("password")]

@@ -12,7 +12,7 @@ using WebAppLab.Data;
 namespace WebAppLab.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20210729112932_AddProductData")]
+    [Migration("20210721151742_AddProductsData")]
     partial class AddProductsData
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

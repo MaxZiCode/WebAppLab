@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 using WebAppLab.Data.Models;
 using WebAppLab.Helpers;
-using WebAppLab.Models;
+using WebAppLab.Wrappers;
 
 namespace WebAppLab.Services
 {

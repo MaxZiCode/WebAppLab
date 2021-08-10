@@ -2,20 +2,22 @@
 using AutoMapper.QueryableExtensions;
 
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
+using WebAppLab.Constants;
 using WebAppLab.Data;
-using WebAppLab.Data.Models;
-using WebAppLab.Helpers;
-using WebAppLab.Models;
 using WebAppLab.Data.Constants;
-
-using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
+using WebAppLab.Data.Models;
+using WebAppLab.Extensions;
+using WebAppLab.Models;
+using WebAppLab.Wrappers;
 
 namespace WebAppLab.Services
 {
@@ -115,6 +117,76 @@ namespace WebAppLab.Services
 
 			product.DeletedAt = DateTime.Now;
 			await context.SaveChangesAsync();
+		}
+
+		public async Task<ProductRating> AddRatingAndUpdateTotalAsync(string userId, RatingData data)
+		{
+			ProductRating productRating = new()
+			{
+				ProductId = data.ProductId,
+				UserId = userId,
+				Rating = data.Rating
+			};
+
+			if (!await context.ProductRatings.ContainsAsync(productRating))
+				await context.ProductRatings.AddAsync(productRating);
+			else
+				context.ProductRatings.Update(productRating);
+
+			await UpdateTotalRatingAsync(data.ProductId);
+			await context.SaveChangesAsync();
+
+			return productRating;
+		}
+
+		private async Task UpdateTotalRatingAsync(Guid productId)
+		{
+			var product = await context.Products.FindAsync(productId);
+			var sum = await context.ProductRatings.Where(pr => pr.ProductId == productId).SumAsync(pr => pr.Rating);
+			var count = await context.ProductRatings.CountAsync();
+
+			product.TotalRating = count != 0 ? sum / count : default;
+		}
+
+		public async Task<PagedResult<List<ProductViewModel>>> GetPagesAsync(ProductListData data)
+		{
+			IQueryable<Product> productsQuery = context.Products;
+			productsQuery = AddFilteringToQuery(productsQuery, data);
+			productsQuery = AddSortingToQuery(productsQuery, data.SortBy ?? SortBy.TotalRating, data.IsSortAsc ?? false);
+
+			int totalProducts = await productsQuery.CountAsync();
+			var pagedProducts = await productsQuery
+				.Skip((data.PageNumber - 1) * data.PageSize)
+				.Take(data.PageSize)
+				.ProjectTo<ProductViewModel>(mapper.ConfigurationProvider)
+				.ToListAsync();
+
+			return new PagedResult<List<ProductViewModel>>(pagedProducts, totalProducts, data.PageSize, data.PageNumber);
+		}
+
+		private IQueryable<Product> AddFilteringToQuery(IQueryable<Product> query, ProductListData data)
+		{
+			if (data.Genre != null)
+				return query.Where(p => p.Genre == data.Genre);
+
+			if (data.Age != null)
+				return query.Where(p => p.Rating == data.Age);
+
+			return query;
+		}
+
+		private IQueryable<Product> AddSortingToQuery(IQueryable<Product> query, SortBy sort, bool isSortAsc)
+		{
+			return sort switch
+			{
+				SortBy.Price => AddSortingByProperty(p => p.Price),
+				_ => AddSortingByProperty(p => p.TotalRating)
+			};
+
+			IQueryable<Product> AddSortingByProperty<T>(Expression<Func<Product, T>> keySelector) =>
+				isSortAsc ?
+					query.OrderBy(keySelector) :
+					query.OrderByDescending(keySelector);
 		}
 	}
 }

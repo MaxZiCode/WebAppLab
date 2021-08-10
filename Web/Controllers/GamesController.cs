@@ -6,11 +6,12 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-using WebAppLab.Data.Models;
-using WebAppLab.Data.Constants;
-using WebAppLab.Services;
-using WebAppLab.Models;
 using WebAppLab.Constants;
+using WebAppLab.Data.Constants;
+using WebAppLab.Data.Models;
+using WebAppLab.Extensions;
+using WebAppLab.Models;
+using WebAppLab.Services;
 
 namespace WebAppLab.Controllers
 {
@@ -60,6 +61,15 @@ namespace WebAppLab.Controllers
 		{
 			await productManager.DeleteAsync(id);
 			return NoContent();
+		}
+
+		[Authorize]
+		[HttpPost("rating")]
+		public async Task<ProductRating> AddRating([FromBody] RatingData ratingData)
+		{
+			var userId = HttpContext.User.GetId();
+			var productRating = await productManager.AddRatingAndUpdateTotalAsync(userId, ratingData);
+			return productRating;
 		}
 	}
 }
