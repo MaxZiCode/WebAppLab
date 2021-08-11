@@ -29,7 +29,7 @@ namespace WebAppLab.Services
 				await context.Orders.AddAsync(order);
 			}
 
-			ProductAmount productAmount = order.ProductAmounts.FirstOrDefault(pa => pa.ProductId == data.ProductId);
+			ProductAmount productAmount = order.ProductAmounts.SingleOrDefault(pa => pa.ProductId == data.ProductId);
 			if (productAmount == null)
 			{
 				productAmount = new() { ProductId = data.ProductId, OrderId = order.Id, Amount = data.Amount };
@@ -88,7 +88,8 @@ namespace WebAppLab.Services
 			if (includeProductAmounts)
 				orders = orders.Include(o => o.ProductAmounts);
 
-			return await orders.FirstOrDefaultAsync(o => o.UserId == userId);
+			var singleNotCompletedOrder = await orders.SingleOrDefaultAsync(o => !o.IsCompleted && o.UserId == userId);
+			return singleNotCompletedOrder;
 		}
 	}
 }
