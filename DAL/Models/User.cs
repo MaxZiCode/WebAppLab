@@ -11,8 +11,8 @@ namespace WebAppLab.Data.Models
 		public string LastName { get; set; }
 		public DateTime DateOfBirth { get; set; }
 		public string AddressDelivery { get; set; }
-		public Order Order { get; set; }
 
+		public ICollection<Order> Orders { get; set; }
 		public ICollection<ProductRating> ProductRatings { get; set; }
 	}
 }
