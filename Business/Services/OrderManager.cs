@@ -50,7 +50,7 @@ namespace WebAppLab.Services
 			if (orderToSearch == null)
 				return Enumerable.Empty<ProductAmount>();
 
-			var productAmountList = await context.ProductAmounts.Where(pa => pa.OrderId == orderToSearch).ToListAsync();
+			var productAmountList = await context.ProductAmounts.AsNoTracking().Where(pa => pa.OrderId == orderToSearch).ToListAsync();
 			return productAmountList;
 		}
 
@@ -83,7 +83,7 @@ namespace WebAppLab.Services
 
 		private async Task<Order> GetOrderForUserAsync(string userId, bool includeProductAmounts = false)
 		{
-			IQueryable<Order> orders = context.Orders;
+			IQueryable<Order> orders = context.Orders.AsNoTracking();
 
 			if (includeProductAmounts)
 				orders = orders.Include(o => o.ProductAmounts);

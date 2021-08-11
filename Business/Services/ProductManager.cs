@@ -34,6 +34,7 @@ namespace WebAppLab.Services
 		public async Task<List<Platforms>> GetTopAsync(int count)
 		{
 			return await context.Products
+				.AsNoTracking()
 				.GroupBy(p => p.Platform)
 				.OrderByDescending(g => g.Count())
 				.Select(g => g.Key)
@@ -44,6 +45,7 @@ namespace WebAppLab.Services
 		public async Task<List<ProductViewModel>> FindByNameAsync(string name, int maxCount = int.MaxValue, int offset = 0)
 		{
 			return await context.Products
+				.AsNoTracking()
 				.Where(p => p.Name.Contains(name))
 				.OrderBy(p => p.Name)
 				.Skip(offset)
@@ -147,7 +149,7 @@ namespace WebAppLab.Services
 
 		public async Task<PagedResult<List<ProductViewModel>>> GetPagesAsync(ProductListData data)
 		{
-			IQueryable<Product> productsQuery = context.Products;
+			IQueryable<Product> productsQuery = context.Products.AsNoTracking();
 			productsQuery = AddFilteringToQuery(productsQuery, data);
 			productsQuery = AddSortingToQuery(productsQuery, data.SortBy ?? SortBy.TotalRating, data.IsSortAsc ?? false);
 
