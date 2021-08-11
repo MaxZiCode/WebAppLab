@@ -13,8 +13,8 @@ namespace WebAppLab.Data.Configurations
 
 			builder
 				.HasOne<User>()
-				.WithOne(u => u.Order)
-				.HasForeignKey<Order>(o => o.UserId)
+				.WithMany(u => u.Orders)
+				.HasForeignKey(o => o.UserId)
 				.OnDelete(DeleteBehavior.Cascade);
 			builder
 				.HasMany(p => p.ProductAmounts)
