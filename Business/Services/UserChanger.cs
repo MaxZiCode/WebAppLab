@@ -2,6 +2,7 @@
 
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -12,6 +13,8 @@ using WebAppLab.Extensions;
 using WebAppLab.Helpers;
 using WebAppLab.Models;
 using WebAppLab.Wrappers;
+using WebAppLab.Constants;
+using System;
 
 namespace WebAppLab.Services
 {
@@ -20,19 +23,26 @@ namespace WebAppLab.Services
 		private readonly ApplicationDbContext context;
 		private readonly IMapper mapper;
 		private readonly UserManager<User> userManager;
+		private readonly IMemoryCache cache;
 
-		public UserChanger(ApplicationDbContext context, IMapper mapper, UserManager<User> userManager)
+		public UserChanger(ApplicationDbContext context, IMapper mapper, UserManager<User> userManager, IMemoryCache cache)
 		{
 			this.context = context;
 			this.mapper = mapper;
 			this.userManager = userManager;
+			this.cache = cache;
 		}
 
 		public async Task<UserViewModel> GetUserAsync(ClaimsPrincipal claimsPrincipal)
 		{
-			var userDbo = await GetUserFromDatabaseAsync(claimsPrincipal);
-			var user = mapper.Map<UserViewModel>(userDbo);
-			return user;
+			return await cache.GetOrCreateAsync(CacheKeys.User, async entry =>
+			{
+				entry.SlidingExpiration = TimeSpan.FromDays(1);
+
+				var userDbo = await GetUserFromDatabaseAsync(claimsPrincipal);
+				var user = mapper.Map<UserViewModel>(userDbo);
+				return user;
+			});
 		}
 
 		public async Task<ValueResult<UserViewModel>> ChangeAsync(ClaimsPrincipal claimsPrincipal, UserViewModel user)
@@ -50,6 +60,8 @@ namespace WebAppLab.Services
 			mapper.Map(user, userDbo);
 			context.Users.Update(userDbo);
 			await context.SaveChangesAsync();
+
+			cache.Remove(CacheKeys.User);
 
 			return ValueResult<UserViewModel>.FromValue(user);
 		}

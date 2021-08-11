@@ -83,6 +83,8 @@ namespace WebAppLab
 				options.Providers.Add<GzipCompressionProvider>();
 				options.EnableForHttps = true;
 			});
+
+			services.AddMemoryCache();
 		}
 
 		public void Configure(
