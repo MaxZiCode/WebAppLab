@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-
+﻿
 using WebAppLab.Data.Constants;
 
 namespace WebAppLab.Models

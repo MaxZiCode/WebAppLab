@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
-using WebAppLab.Data.Configurations;
+using System.Reflection;
 
 using WebAppLab.Data.Models;
 
@@ -12,6 +12,8 @@ namespace WebAppLab.Data
 	{
 		public DbSet<Product> Products { get; set; }
 		public DbSet<ProductRating> ProductRatings { get; set; }
+		public DbSet<Order> Orders { get; set; }
+		public DbSet<ProductAmount> ProductAmounts { get; set; }
 
 		public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
 			: base(options)
@@ -22,10 +24,7 @@ namespace WebAppLab.Data
 		{
 			base.OnModelCreating(builder);
 
-			builder.ApplyConfiguration(new ProductConfiguration());
-			builder.ApplyConfiguration(new ProductRatingConfiguration());
-
-			builder.ApplyConfiguration(new DefaultProductData());
+			builder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
 		}
 	}
 }

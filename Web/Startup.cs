@@ -75,6 +75,7 @@ namespace WebAppLab
 			services.AddScoped<IProductManager, ProductManager>();
 
 			services.AddCloudinary(Configuration);
+			services.AddOrderManager();
 		}
 
 		public void Configure(
