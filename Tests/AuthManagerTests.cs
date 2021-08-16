@@ -10,6 +10,11 @@ using System.Threading.Tasks;
 using WebAppLab.Wrappers;
 using System;
 
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using System.Collections.Generic;
+using WebAppLab.Data;
+
 namespace WebAppLab.Tests
 {
 	public class AuthManagerTests
@@ -36,17 +41,20 @@ namespace WebAppLab.Tests
 		}
 
 		[Fact]
-		public async Task SignUp_success()
+		public async Task Can_SignUp()
 		{
 			SetupSignUp();
 
 			var result = await authManager.SignUpAsync(A.Fake<HttpContext>(), email, password, string.Empty);
 
+			A.CallTo(() => userManager.CreateAsync(A<User>.Ignored, A<string>.Ignored)).MustHaveHappened();
+			A.CallTo(() => userManager.AddToRoleAsync(A<User>.Ignored, A<string>.Ignored)).MustHaveHappened();
+			A.CallTo(() => confirmEmailSender.SendAsync(A<HttpContext>.Ignored, A<string>.Ignored, A<string>.Ignored, A<string>.Ignored)).MustHaveHappened();
 			Assert.True(result.Succeeded, result.FailMessage);
 		}
 
 		[Fact]
-		public async Task SignUp_incorrect_email()
+		public async Task Cannot_SignUp_incorrect_email()
 		{
 			SetupSignUp();
 			email = invalidEmail;
@@ -57,7 +65,7 @@ namespace WebAppLab.Tests
 		}
 
 		[Fact]
-		public async Task SignUp_incorrect_password()
+		public async Task Cannot_SignUp_incorrect_password()
 		{
 			SetupSignUp();
 			password = invalidPassword;
@@ -68,7 +76,7 @@ namespace WebAppLab.Tests
 		}
 
 		[Fact]
-		public async Task SignUp_fail_create()
+		public async Task Cannot_SignUp_fail_create()
 		{
 			SetupSignUp(failCreate: true);
 
@@ -78,62 +86,22 @@ namespace WebAppLab.Tests
 		}
 
 		[Fact]
-		public async Task SignUp_fail_add_role()
+		public async Task Cannot_SignUp_fail_add_role()
 		{
 			SetupSignUp(failAddRole: true);
 
 			var result = await MakeSignUp();
 
-			Assert.Contains("add role", result.FailMessage);
-		}
-
-		[Fact]
-		public async Task SignUp_creates_a_user()
-		{
-			SetupSignUp();
-
-			await MakeSignUp();
-
-			A.CallTo(() => userManager.CreateAsync(A<User>._, A<string>._)).MustHaveHappened();
-		}
-
-		[Fact]
-		public async Task SignUp_adds_a_user_to_role()
-		{
-			SetupSignUp();
-
-			await MakeSignUp();
-
-			A.CallTo(() => userManager.AddToRoleAsync(A<User>._, A<string>._)).MustHaveHappened();
-		}
-
-		[Fact]
-		public async Task SignUp_generates_email_confirmation_token()
-		{
-			SetupSignUp();
-
-			await MakeSignUp();
-
-			A.CallTo(() => userManager.GenerateEmailConfirmationTokenAsync(A<User>._)).MustHaveHappened();
-		}
-
-		[Fact]
-		public async Task SignUp_sends_email_confirmation()
-		{
-			SetupSignUp();
-
-			await MakeSignUp();
-
-			A.CallTo(() => confirmEmailSender.SendAsync(A<HttpContext>._, A<string>._, A<string>._, A<string>._)).MustHaveHappened();
+			Assert.Contains("role", result.FailMessage);
 		}
 
 		private void SetupSignUp(bool failCreate = false, bool failAddRole = false)
 		{
 			if (!failCreate)
-				A.CallTo(() => userManager.CreateAsync(A<User>._, A<string>._)).Returns(IdentityResult.Success);
+				A.CallTo(() => userManager.CreateAsync(A<User>.Ignored, A<string>._)).Returns(IdentityResult.Success);
 
 			if (!failAddRole)
-				A.CallTo(() => userManager.AddToRoleAsync(A<User>._, A<string>._)).Returns(IdentityResult.Success);
+				A.CallTo(() => userManager.AddToRoleAsync(A<User>.Ignored, A<string>._)).Returns(IdentityResult.Success);
 		}
 
 		private async Task<Result> MakeSignUp()
@@ -142,33 +110,24 @@ namespace WebAppLab.Tests
 		}
 
 		[Fact]
-		public async Task SignIn_success()
+		public async Task Can_SignIn()
 		{
 			SetupSignIn();
 
 			var result = await authManager.SignInAsync(validEmail, validPassword);
 
+			A.CallTo(() => signInManager.PasswordSignInAsync(A<string>.Ignored, A<string>.Ignored, A<bool>.Ignored, A<bool>.Ignored));
 			Assert.True(result.Succeeded, result.FailMessage);
 		}
 
 		[Fact]
-		public async Task SignIn_fail()
+		public async Task Cannot_SignIn()
 		{
 			SetupSignIn(fail: true);
 
 			var result = await authManager.SignInAsync(invalidEmail, invalidPassword);
 
 			Assert.False(result.Succeeded);
-		}
-
-		[Fact]
-		public async Task SignIn_calls_PasswordSignIn()
-		{
-			SetupSignIn();
-
-			await authManager.SignInAsync(validEmail, validPassword);
-
-			A.CallTo(() => signInManager.PasswordSignInAsync(A<string>._, A<string>._, A<bool>._, A<bool>._)).MustHaveHappened();
 		}
 
 		private void SetupSignIn(bool fail = false)
@@ -178,41 +137,32 @@ namespace WebAppLab.Tests
 		}
 
 		[Fact]
-		public async Task SignOut_calls_SignOut()
+		public async Task Can_SignOut()
 		{
-			await authManager.SignOutAsync();
+			var result = await authManager.SignOutAsync();
 
 			A.CallTo(() => signInManager.SignOutAsync()).MustHaveHappened();
 		}
 
 		[Fact]
-		public async Task ConfirmEmail_success()
+		public async Task Can_ConfirmEmail()
 		{
 			SetupConfirmEmail();
 
 			var result = await authManager.ConfirmEmail(string.Empty, string.Empty);
 
+			A.CallTo(() => userManager.ConfirmEmailAsync(A<User>.Ignored, A<string>.Ignored)).MustHaveHappened();
 			Assert.True(result.Succeeded, result.FailMessage);
 		}
 
 		[Fact]
-		public async Task ConfirmEmail_fail()
+		public async Task Cannot_ConfirmEmail_incorrect_code()
 		{
 			SetupConfirmEmail(fail: true);
 
 			var result = await authManager.ConfirmEmail(string.Empty, string.Empty);
 
 			Assert.False(result.Succeeded);
-		}
-
-		[Fact]
-		public async Task ConfirmEmail_calls_ConfirmEmail()
-		{
-			SetupConfirmEmail();
-
-			var result = await authManager.ConfirmEmail(string.Empty, string.Empty);
-
-			A.CallTo(() => userManager.ConfirmEmailAsync(A<User>._, A<string>._)).MustHaveHappened();
 		}
 
 		private void SetupConfirmEmail(bool fail = false)
