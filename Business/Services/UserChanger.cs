@@ -2,6 +2,7 @@
 
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -12,6 +13,8 @@ using WebAppLab.Extensions;
 using WebAppLab.Helpers;
 using WebAppLab.Models;
 using WebAppLab.Wrappers;
+using WebAppLab.Constants;
+using System;
 
 namespace WebAppLab.Services
 {
@@ -20,24 +23,31 @@ namespace WebAppLab.Services
 		private readonly ApplicationDbContext context;
 		private readonly IMapper mapper;
 		private readonly UserManager<User> userManager;
+		private readonly IMemoryCache cache;
 
-		public UserChanger(ApplicationDbContext context, IMapper mapper, UserManager<User> userManager)
+		public UserChanger(ApplicationDbContext context, IMapper mapper, UserManager<User> userManager, IMemoryCache cache)
 		{
 			this.context = context;
 			this.mapper = mapper;
 			this.userManager = userManager;
+			this.cache = cache;
 		}
 
 		public async Task<UserViewModel> GetUserAsync(ClaimsPrincipal claimsPrincipal)
 		{
-			var userDbo = await GetUserFromDatabaseAsync(claimsPrincipal);
-			var user = mapper.Map<UserViewModel>(userDbo);
-			return user;
+			return await cache.GetOrCreateAsync(CacheKeys.User, async entry =>
+			{
+				entry.SlidingExpiration = TimeSpan.FromDays(1);
+
+				var userDbo = await GetUserFromDatabaseAsync(claimsPrincipal);
+				var user = mapper.Map<UserViewModel>(userDbo);
+				return user;
+			});
 		}
 
 		public async Task<ValueResult<UserViewModel>> ChangeAsync(ClaimsPrincipal claimsPrincipal, UserViewModel user)
 		{
-			var userDboTask = GetUserFromDatabaseAsync(claimsPrincipal);
+			var userDbo = await GetUserFromDatabaseAsync(claimsPrincipal);
 
 			bool isEmailCorrect = CheckUtility.CheckEmail(user.Email);
 			if (!isEmailCorrect)
@@ -47,12 +57,13 @@ namespace WebAppLab.Services
 			if (!isPhoneNumberCorrect)
 				return ValueResult<UserViewModel>.FromFail("Phone number is incorrect");
 
-			var userDbo = await userDboTask;
 			mapper.Map(user, userDbo);
+			context.Users.Update(userDbo);
 			await context.SaveChangesAsync();
 
-			var changedUser = await GetUserAsync(claimsPrincipal);
-			return ValueResult<UserViewModel>.FromValue(changedUser);
+			cache.Remove(CacheKeys.User);
+
+			return ValueResult<UserViewModel>.FromValue(user);
 		}
 
 		public async Task<Result> ChangePasswordAsync(ClaimsPrincipal claimsPrincipal, string newPassword)
@@ -64,6 +75,7 @@ namespace WebAppLab.Services
 			var userDbo = await GetUserFromDatabaseAsync(claimsPrincipal);
 			var hashedPassword = userManager.PasswordHasher.HashPassword(userDbo, newPassword);
 			userDbo.PasswordHash = hashedPassword;
+			context.Users.Update(userDbo);
 			await context.SaveChangesAsync();
 			return Result.Success;
 		}
@@ -71,7 +83,7 @@ namespace WebAppLab.Services
 		private async Task<User> GetUserFromDatabaseAsync(ClaimsPrincipal claimsPrincipal)
 		{
 			var id = claimsPrincipal.GetId();
-			var userDbo = await context.Users.FirstAsync(u => u.Id == id);
+			var userDbo = await context.Users.AsNoTracking().FirstAsync(u => u.Id == id);
 			return userDbo;
 		}
 	}
