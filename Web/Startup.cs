@@ -21,16 +21,20 @@ namespace WebAppLab
 {
 	public class Startup
 	{
-		public Startup(IConfiguration configuration)
+		public Startup(IConfiguration configuration, IHostEnvironment environment)
 		{
 			Configuration = configuration;
+			Environment = environment;
 		}
 
 		public IConfiguration Configuration { get; }
 
+		public IHostEnvironment Environment { get; }
+
 		public void ConfigureServices(IServiceCollection services)
 		{
-			services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+			string connectionString = Environment.IsProduction() ? "PublishConnection" : "DefaultConnection";
+			services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString(connectionString)));
 			services.AddIdentity<User, IdentityRole>(options =>
 				{
 					options.User.AllowedUserNameCharacters = string.Empty;
