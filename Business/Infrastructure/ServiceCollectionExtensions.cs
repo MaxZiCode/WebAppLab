@@ -1,5 +1,8 @@
 ﻿using CloudinaryDotNet;
 
+using MailKit;
+using MailKit.Net.Smtp;
+
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -13,10 +16,11 @@ namespace WebAppLab.Infrastructure
 {
 	public static class ServiceCollectionExtensions
 	{
-		public static IServiceCollection AddAuthManager<TDbContext>(this IServiceCollection services, IConfiguration configuration) where TDbContext: IdentityDbContext<User, IdentityRole, string>
+		public static IServiceCollection AddAuthManager<TDbContext>(this IServiceCollection services, IConfiguration configuration) where TDbContext : IdentityDbContext<User, IdentityRole, string>
 		{
 			services
-				.AddIdentity<User, IdentityRole>(options => {
+				.AddIdentity<User, IdentityRole>(options =>
+				{
 					options.User.AllowedUserNameCharacters = string.Empty;
 					options.User.RequireUniqueEmail = false;
 
@@ -25,7 +29,7 @@ namespace WebAppLab.Infrastructure
 					options.Password.RequiredUniqueChars = 0;
 					options.Password.RequireLowercase = false;
 					options.Password.RequireNonAlphanumeric = false;
-					options.Password.RequireUppercase = false; 
+					options.Password.RequireUppercase = false;
 				})
 				.AddEntityFrameworkStores<TDbContext>()
 				.AddDefaultTokenProviders();
@@ -35,6 +39,7 @@ namespace WebAppLab.Infrastructure
 				.Configure<AuthData>(configuration.GetSection("Admin"));
 
 			services
+				.AddScoped<MailTransport, SmtpClient>()
 				.AddScoped<IEmailSender, EmailSender>()
 				.AddScoped<IConfirmEmailSender, ConfirmEmailSender>()
 				.AddScoped<IAuthManager, AuthManager>();
@@ -56,7 +61,8 @@ namespace WebAppLab.Infrastructure
 		public static IServiceCollection AddProductManager(this IServiceCollection services, IConfiguration configuration)
 		{
 			services
-				.AddAutoMapper(config => {
+				.AddAutoMapper(config =>
+				{
 					config.CreateMap<Product, ProductViewModel>().ReverseMap();
 					config.CreateMap<ProductForm, Product>();
 				});

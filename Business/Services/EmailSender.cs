@@ -1,4 +1,4 @@
-﻿using MailKit.Net.Smtp;
+﻿using MailKit;
 
 using Microsoft.Extensions.Options;
 
@@ -12,10 +12,14 @@ namespace WebAppLab.Services
 {
 	public class EmailSender : IEmailSender
 	{
+		private readonly MailTransport mail;
 		private readonly SmtpSettings smtpSettings;
 
-		public EmailSender(IOptions<SmtpSettings> smtpSettings)
+		public EmailSender(MailTransport mail, IOptions<SmtpSettings> smtpSettings)
 		{
+			this.mail = mail;
+			mail.ServerCertificateValidationCallback = (s, c, h, e) => true;
+
 			this.smtpSettings = smtpSettings.Value;
 		}
 
@@ -29,12 +33,10 @@ namespace WebAppLab.Services
 			message.From.Add(new MailboxAddress(smtpSettings.SenderName, smtpSettings.SenderEmail));
 			message.To.Add(new MailboxAddress(toEmail, toEmail));
 
-			using var client = new SmtpClient();
-			client.ServerCertificateValidationCallback = (s, c, h, e) => true;
-			await client.ConnectAsync(smtpSettings.Server, smtpSettings.Port, smtpSettings.SecureSocketOptions);
-			await client.AuthenticateAsync(smtpSettings.UserName, smtpSettings.Password);
-			await client.SendAsync(message);
-			await client.DisconnectAsync(quit: true);
+			await mail.ConnectAsync(smtpSettings.Server, smtpSettings.Port, smtpSettings.SecureSocketOptions);
+			await mail.AuthenticateAsync(smtpSettings.UserName, smtpSettings.Password);
+			await mail.SendAsync(message);
+			await mail.DisconnectAsync(quit: true);
 		}
 	}
 }
