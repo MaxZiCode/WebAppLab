@@ -15,6 +15,7 @@ using WebAppLab.Models;
 using WebAppLab.Wrappers;
 using WebAppLab.Constants;
 using System;
+using System.Linq;
 
 namespace WebAppLab.Services
 {
@@ -47,7 +48,7 @@ namespace WebAppLab.Services
 
 		public async Task<ValueResult<UserViewModel>> ChangeAsync(ClaimsPrincipal claimsPrincipal, UserViewModel user)
 		{
-			var userDbo = await GetUserFromDatabaseAsync(claimsPrincipal);
+			var userDbo = await GetUserFromDatabaseAsync(claimsPrincipal, track: true);
 
 			bool isEmailCorrect = CheckUtility.CheckEmail(user.Email);
 			if (!isEmailCorrect)
@@ -58,7 +59,6 @@ namespace WebAppLab.Services
 				return ValueResult<UserViewModel>.FromFail("Phone number is incorrect");
 
 			mapper.Map(user, userDbo);
-			context.Users.Update(userDbo);
 			await context.SaveChangesAsync();
 
 			cache.Remove(CacheKeys.User);
@@ -72,19 +72,23 @@ namespace WebAppLab.Services
 			if (!isPasswordCorrect)
 				return Result.FromFail("Password is incorrect.");
 
-			var userDbo = await GetUserFromDatabaseAsync(claimsPrincipal);
+			var userDbo = await GetUserFromDatabaseAsync(claimsPrincipal, track: true);
 			var hashedPassword = userManager.PasswordHasher.HashPassword(userDbo, newPassword);
 			userDbo.PasswordHash = hashedPassword;
-			context.Users.Update(userDbo);
 			await context.SaveChangesAsync();
 			return Result.Success;
 		}
 
-		private async Task<User> GetUserFromDatabaseAsync(ClaimsPrincipal claimsPrincipal)
+		private async Task<User> GetUserFromDatabaseAsync(ClaimsPrincipal claimsPrincipal, bool track = false)
 		{
 			var id = claimsPrincipal.GetId();
-			var userDbo = await context.Users.AsNoTracking().FirstAsync(u => u.Id == id);
-			return userDbo;
+
+			IQueryable<User> users = context.Users;
+
+			if (!track)
+				users = users.AsNoTracking();
+
+			return await users.FirstAsync(u => u.Id == id);
 		}
 	}
 }
