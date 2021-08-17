@@ -10,11 +10,11 @@ using WebAppLab.Data;
 
 namespace WebAppLab.Tests
 {
-	public abstract class DbRequiredTest
+	public abstract class DbRequiredTests
 	{
 		protected DbContextOptions<ApplicationDbContext> ContextOptions { get; }
 
-		protected DbRequiredTest()
+		protected DbRequiredTests()
 		{
 			ContextOptions = new DbContextOptionsBuilder<ApplicationDbContext>()
 				.UseInMemoryDatabase("Default")
