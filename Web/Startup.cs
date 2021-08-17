@@ -22,18 +22,20 @@ namespace WebAppLab
 {
 	public class Startup
 	{
-		public Startup(IConfiguration configuration)
+		public Startup(IConfiguration configuration, IHostEnvironment environment)
 		{
 			Configuration = configuration;
+			Environment = environment;
 		}
 
 		public IConfiguration Configuration { get; }
 
+		public IHostEnvironment Environment { get; }
+
 		public void ConfigureServices(IServiceCollection services)
 		{
-			services
-				.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")))
-				.AddDatabaseDeveloperPageExceptionFilter();
+			string connectionString = Environment.IsProduction() ? "PublishConnection" : "DefaultConnection";
+			services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString(connectionString)));
 
 			services
 				.AddSwaggerGen(c => c.SwaggerDoc("v1", new OpenApiInfo
@@ -50,7 +52,8 @@ namespace WebAppLab
 				.AddMemoryCache();
 
 			services
-				.AddControllers();
+				.AddControllers()
+				.AddNewtonsoftJson();
 
 			services
 				.AddAuthManager<ApplicationDbContext>(Configuration)
