@@ -17,7 +17,7 @@ namespace WebAppLab.Tests
 		protected DbRequiredTests()
 		{
 			ContextOptions = new DbContextOptionsBuilder<ApplicationDbContext>()
-				.UseInMemoryDatabase("Default")
+				.UseInMemoryDatabase(Guid.NewGuid().ToString())
 				.Options;
 
 			Seed();

@@ -63,14 +63,13 @@ namespace WebAppLab.Services
 		public async Task<ProductViewModel> CreateAsync(ProductForm productData)
 		{
 			Product product = mapper.Map<Product>(productData);
+
+			var logoLink = await UploadImageAsync(productData.Logo);
+			var backgroundLink = await UploadImageAsync(productData.Background);
+			product.Logo = logoLink;
+			product.Background = backgroundLink;
+
 			await context.Products.AddAsync(product);
-
-			var logoLinkTask = UploadImageAsync(productData.Logo);
-			var backgroundLinkTask = UploadImageAsync(productData.Background);
-			product.Logo = await logoLinkTask;
-			product.Background = await backgroundLinkTask;
-
-			context.Update(product);
 			await context.SaveChangesAsync();
 			return mapper.Map<ProductViewModel>(product);
 
@@ -127,24 +126,26 @@ namespace WebAppLab.Services
 				Rating = data.Rating
 			};
 
-			if (!await context.ProductRatings.ContainsAsync(productRating))
-				await context.ProductRatings.AddAsync(productRating);
-			else
-				context.ProductRatings.Update(productRating);
+			var porduct = await context.Products.Include(p => p.ProductRatings).FirstAsync(p => p.Id == data.ProductId);
 
-			await UpdateTotalRatingAsync(data.ProductId);
+			var existingRating = porduct.ProductRatings.FirstOrDefault(r => r.UserId == userId && r.ProductId == data.ProductId);
+			if (existingRating == null)
+				porduct.ProductRatings.Add(productRating);
+			else
+				existingRating.Rating = data.Rating;
+
+			UpdateTotalRatingAsync(porduct);
 			await context.SaveChangesAsync();
 
 			return productRating;
 		}
 
-		private async Task UpdateTotalRatingAsync(Guid productId)
+		private void UpdateTotalRatingAsync(Product product)
 		{
-			var product = await context.Products.FindAsync(productId);
-			var sum = await context.ProductRatings.Where(pr => pr.ProductId == productId).SumAsync(pr => pr.Rating);
-			var count = await context.ProductRatings.CountAsync();
+			var sum = product.ProductRatings.Where(pr => pr.ProductId == product.Id).Sum(pr => pr.Rating);
+			var count = product.ProductRatings.Count();
 
-			product.TotalRating = count != 0 ? sum / count : default;
+			product.TotalRating = sum / count;
 		}
 
 		public async Task<PagedResult<List<ProductViewModel>>> GetPagesAsync(ProductListData data)
