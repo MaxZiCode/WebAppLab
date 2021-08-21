@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 using System.Threading.Tasks;
 
+using WebAppLab.Extensions;
 using WebAppLab.Models;
 using WebAppLab.Services;
 
@@ -23,12 +24,12 @@ namespace WebAppLab.Controllers
 		}
 
 		[HttpGet]
-		public async Task<ActionResult<UserViewModel>> GetUser() => Ok(await userChanger.GetUserAsync(HttpContext.User));
+		public async Task<ActionResult<UserViewModel>> GetUser() => Ok(await userChanger.GetUserAsync(HttpContext.User.GetId()));
 
 		[HttpPut]
 		public async Task<ActionResult<UserViewModel>> ChangeUser([FromBody] UserViewModel user)
 		{
-			var result = await userChanger.ChangeAsync(HttpContext.User, user);
+			var result = await userChanger.ChangeAsync(HttpContext.User.GetId(), user);
 			if (!result.Succeeded)
 				return BadRequest(new { errorMessage = result.FailMessage });
 
@@ -41,7 +42,7 @@ namespace WebAppLab.Controllers
 			UserPassword userPassword = new();
 			jsonPatch.ApplyTo(userPassword);
 
-			var result = await userChanger.ChangePasswordAsync(HttpContext.User, userPassword.Password);
+			var result = await userChanger.ChangePasswordAsync(HttpContext.User.GetId(), userPassword.Password);
 			if (!result.Succeeded)
 				return BadRequest(new { errorMessage = result.FailMessage });
 

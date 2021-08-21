@@ -36,13 +36,8 @@ namespace WebAppLab.Services
 
 			var user = new User() { Email = email, UserName = email };
 
-			var resultCreate = await userManager.CreateAsync(user, password);
-			if (!resultCreate.Succeeded)
-				return Result.FromFail($"Failed to create a new user \'{email}\': {GetErrorsMessage(resultCreate.Errors)}");
-
-			var resultRole = await userManager.AddToRoleAsync(user, role);
-			if (!resultRole.Succeeded)
-				return Result.FromFail($"Failed to add role \'{role} to user \'{email}\': {GetErrorsMessage(resultRole.Errors)}");
+			await userManager.CreateAsync(user, password);
+			await userManager.AddToRoleAsync(user, role);
 
 			var code = await userManager.GenerateEmailConfirmationTokenAsync(user);
 			await confirmEmailSender.SendAsync(httpContext, user.Email, user.Id, code);
