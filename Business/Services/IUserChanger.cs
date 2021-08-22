@@ -8,8 +8,8 @@ namespace WebAppLab.Services
 {
 	public interface IUserChanger
 	{
-		Task<ValueResult<UserViewModel>> ChangeAsync(ClaimsPrincipal claimsPrincipal, UserViewModel user);
-		Task<Result> ChangePasswordAsync(ClaimsPrincipal claimsPrincipal, string newPassword);
-		Task<UserViewModel> GetUserAsync(ClaimsPrincipal claimsPrincipal);
+		Task<ValueResult<UserViewModel>> ChangeAsync(string userId, UserViewModel user);
+		Task<Result> ChangePasswordAsync(string userId, string newPassword);
+		Task<UserViewModel> GetUserAsync(string userId);
 	}
 }

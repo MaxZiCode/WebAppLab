@@ -37,7 +37,7 @@ namespace WebAppLab.Tests
 		[Fact]
 		public async Task GetUser_StatusCode200()
 		{
-			A.CallTo(() => userChanger.GetUserAsync(A<ClaimsPrincipal>.Ignored)).Returns(A.Fake<UserViewModel>());
+			A.CallTo(() => userChanger.GetUserAsync(A<string>.Ignored)).Returns(A.Fake<UserViewModel>());
 			
 			var actionResult = await userController.GetUser();
 
@@ -48,7 +48,7 @@ namespace WebAppLab.Tests
 		public async Task ChangeUser_Fail_StatusCode400()
 		{
 			var user = new UserViewModel();
-			A.CallTo(() => userChanger.ChangeAsync(A<ClaimsPrincipal>.Ignored, A<UserViewModel>.Ignored)).Returns(ValueResult<UserViewModel>.FromFail());
+			A.CallTo(() => userChanger.ChangeAsync(A<string>.Ignored, A<UserViewModel>.Ignored)).Returns(ValueResult<UserViewModel>.FromFail());
 
 			var actionResult = await userController.ChangeUser(user);
 
@@ -59,7 +59,7 @@ namespace WebAppLab.Tests
 		public async Task ChangeUser_Success_StatusCode200()
 		{
 			var user = new UserViewModel();
-			A.CallTo(() => userChanger.ChangeAsync(A<ClaimsPrincipal>.Ignored, A<UserViewModel>.Ignored)).Returns(ValueResult<UserViewModel>.FromValue(user));
+			A.CallTo(() => userChanger.ChangeAsync(A<string>.Ignored, A<UserViewModel>.Ignored)).Returns(ValueResult<UserViewModel>.FromValue(user));
 
 			var actionResult = await userController.ChangeUser(user);
 
@@ -69,7 +69,7 @@ namespace WebAppLab.Tests
 		[Fact]
 		public async Task ChangePassword_Fail_StatusCode400()
 		{
-			A.CallTo(() => userChanger.ChangePasswordAsync(A<ClaimsPrincipal>.Ignored, A<string>.Ignored)).Returns(Result.FromFail());
+			A.CallTo(() => userChanger.ChangePasswordAsync(A<string>.Ignored, A<string>.Ignored)).Returns(Result.FromFail());
 
 			JsonPatchDocument<UserPassword> patch = new();
 			var actionResult = await userController.ChangePassword(patch);
@@ -80,7 +80,7 @@ namespace WebAppLab.Tests
 		[Fact]
 		public async Task ChangePassword_Success_StatusCode200()
 		{
-			A.CallTo(() => userChanger.ChangePasswordAsync(A<ClaimsPrincipal>.Ignored, A<string>.Ignored)).Returns(Result.Success);
+			A.CallTo(() => userChanger.ChangePasswordAsync(A<string>.Ignored, A<string>.Ignored)).Returns(Result.Success);
 
 			JsonPatchDocument<UserPassword> patch = new();
 			var actionResult = await userController.ChangePassword(patch);
