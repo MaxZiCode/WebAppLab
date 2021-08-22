@@ -165,8 +165,7 @@ namespace WebAppLab.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId")
-                        .IsUnique();
+                    b.HasIndex("UserId");
 
                     b.ToTable("Orders");
                 });
@@ -599,8 +598,8 @@ namespace WebAppLab.Data.Migrations
             modelBuilder.Entity("WebAppLab.Data.Models.Order", b =>
                 {
                     b.HasOne("WebAppLab.Data.Models.User", null)
-                        .WithOne("Order")
-                        .HasForeignKey("WebAppLab.Data.Models.Order", "UserId")
+                        .WithMany("Orders")
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
@@ -647,7 +646,7 @@ namespace WebAppLab.Data.Migrations
 
             modelBuilder.Entity("WebAppLab.Data.Models.User", b =>
                 {
-                    b.Navigation("Order");
+                    b.Navigation("Orders");
 
                     b.Navigation("ProductRatings");
                 });

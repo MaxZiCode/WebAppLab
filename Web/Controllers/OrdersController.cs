@@ -28,6 +28,7 @@ namespace WebAppLab.Controllers
 		}
 
 		[HttpPost]
+		[ProducesResponseType(typeof(Order), 201)]
 		public async Task<IActionResult> AddProduct([FromBody] AddProductData data)
 		{
 			Order order = await orderManager.AddProductAsync(UserId, data);
@@ -35,6 +36,7 @@ namespace WebAppLab.Controllers
 		}
 
 		[HttpGet]
+		[ProducesResponseType(typeof(IEnumerable<ProductAmount>), 200)]
 		public async Task<IActionResult> GetProducts(Guid? orderId = null)
 		{
 			var products = await orderManager.GetProductsAsync(UserId, orderId);
@@ -43,6 +45,7 @@ namespace WebAppLab.Controllers
 		}
 
 		[HttpDelete]
+		[ProducesResponseType(204)]
 		public async Task<IActionResult> DeleteProducts([FromBody] IEnumerable<Guid> productIds)
 		{
 			await orderManager.DeleteProductsAsync(UserId, productIds);
@@ -50,6 +53,7 @@ namespace WebAppLab.Controllers
 		}
 
 		[HttpPost("buy")]
+		[ProducesResponseType(204)]
 		public async Task<IActionResult> BuyProducts()
 		{
 			await orderManager.BuyProductsAsync(UserId);
