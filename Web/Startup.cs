@@ -50,7 +50,8 @@ namespace WebAppLab
 				.AddMemoryCache();
 
 			services
-				.AddControllers();
+				.AddControllers()
+				.AddNewtonsoftJson();
 
 			services
 				.AddAuthManager<ApplicationDbContext>(Configuration)
