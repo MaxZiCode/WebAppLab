@@ -1,31 +1,22 @@
-﻿using FakeItEasy;
-using AutoFixture;
+﻿using AutoMapper;
 
-using MailKit;
+using FakeItEasy;
 
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Options;
 using Microsoft.EntityFrameworkCore;
 
-using MimeKit;
-
 using System;
+using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 
-using WebAppLab.Data.Models;
-using WebAppLab.Infrastructure;
-using WebAppLab.Services;
-using WebAppLab.Wrappers;
-
-using Xunit;
-using AutoMapper;
 using WebAppLab.Data;
 using WebAppLab.Data.Constants;
+using WebAppLab.Data.Models;
 using WebAppLab.Models;
-using System.Collections.Generic;
+using WebAppLab.Services;
+
+using Xunit;
 
 namespace WebAppLab.Tests
 {

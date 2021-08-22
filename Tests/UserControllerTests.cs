@@ -1,18 +1,18 @@
-using System;
+
+using FakeItEasy;
+
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.AspNetCore.Mvc;
+
+using System.Threading.Tasks;
+
+using WebAppLab.Controllers;
+using WebAppLab.Models;
+using WebAppLab.Services;
+using WebAppLab.Wrappers;
 
 using Xunit;
-using FakeItEasy;
-using AutoFixture;
-using WebAppLab.Services;
-using WebAppLab.Controllers;
-using System.Security.Claims;
-using WebAppLab.Models;
-using System.Threading.Tasks;
-using System.Reflection;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Http;
-using WebAppLab.Wrappers;
-using Microsoft.AspNetCore.JsonPatch;
 
 namespace WebAppLab.Tests
 {
@@ -38,7 +38,7 @@ namespace WebAppLab.Tests
 		public async Task GetUser_StatusCode200()
 		{
 			A.CallTo(() => userChanger.GetUserAsync(A<string>.Ignored)).Returns(A.Fake<UserViewModel>());
-			
+
 			var actionResult = await userController.GetUser();
 
 			Assert.IsType<OkObjectResult>(actionResult.Result);

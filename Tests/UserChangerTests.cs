@@ -1,36 +1,25 @@
-﻿using FakeItEasy;
-using AutoFixture;
+﻿using AutoFixture;
 
-using MailKit;
+using AutoMapper;
+
+using FakeItEasy;
 
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Options;
-using Microsoft.EntityFrameworkCore;
-
-using MimeKit;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 
 using System;
-using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 
+using WebAppLab.Constants;
+using WebAppLab.Data;
 using WebAppLab.Data.Models;
-using WebAppLab.Infrastructure;
+using WebAppLab.Models;
 using WebAppLab.Services;
-using WebAppLab.Wrappers;
 
 using Xunit;
-using AutoMapper;
-using WebAppLab.Data;
-using WebAppLab.Data.Constants;
-using WebAppLab.Models;
-using System.Collections.Generic;
-using Microsoft.Extensions.Caching.Memory;
-using WebAppLab.Constants;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using WebAppLab.Helpers;
 
 namespace WebAppLab.Tests
 {
@@ -41,9 +30,9 @@ namespace WebAppLab.Tests
 		private readonly ApplicationDbContext context;
 		private readonly UserManager<User> userManager;
 		private readonly UserChanger userChanger;
-		private readonly User dbUser = new() 
-		{ 
-			Id = Guid.NewGuid().ToString(), 
+		private readonly User dbUser = new()
+		{
+			Id = Guid.NewGuid().ToString(),
 			Email = "dbEmail@emaple.com",
 			PhoneNumber = "375123456789",
 			PasswordHash = Guid.NewGuid().ToString()

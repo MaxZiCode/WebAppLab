@@ -1,24 +1,21 @@
-﻿using Xunit;
-using FakeItEasy;
-using AutoFixture;
+﻿using FakeItEasy;
 
-using Microsoft.AspNetCore.Identity;
-using WebAppLab.Data.Models;
-using WebAppLab.Services;
 using Microsoft.AspNetCore.Http;
-using System.Threading.Tasks;
-using WebAppLab.Wrappers;
-using System;
-
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
-using System.Collections.Generic;
-using WebAppLab.Data;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using WebAppLab.Constants;
-using WebAppLab.Helpers;
-using Microsoft.Extensions.DependencyInjection;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+
+using System;
+using System.Threading.Tasks;
+
+using WebAppLab.Constants;
+using WebAppLab.Data;
+using WebAppLab.Data.Models;
+using WebAppLab.Helpers;
+using WebAppLab.Services;
+
+using Xunit;
 
 namespace WebAppLab.Tests
 {

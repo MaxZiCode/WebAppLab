@@ -4,18 +4,16 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 
-using System.Security.Claims;
+using System;
+using System.Linq;
 using System.Threading.Tasks;
 
+using WebAppLab.Constants;
 using WebAppLab.Data;
 using WebAppLab.Data.Models;
-using WebAppLab.Extensions;
 using WebAppLab.Helpers;
 using WebAppLab.Models;
 using WebAppLab.Wrappers;
-using WebAppLab.Constants;
-using System;
-using System.Linq;
 
 namespace WebAppLab.Services
 {
