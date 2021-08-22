@@ -23,7 +23,7 @@ namespace WebAppLab.Controllers
 		}
 
 		[HttpGet]
-		public async Task<ActionResult<UserViewModel>> GetUser() => await userChanger.GetUserAsync(HttpContext.User);
+		public async Task<ActionResult<UserViewModel>> GetUser() => Ok(await userChanger.GetUserAsync(HttpContext.User));
 
 		[HttpPut]
 		public async Task<ActionResult<UserViewModel>> ChangeUser([FromBody] UserViewModel user)
@@ -32,7 +32,7 @@ namespace WebAppLab.Controllers
 			if (!result.Succeeded)
 				return BadRequest(new { errorMessage = result.FailMessage });
 
-			return result.Data;
+			return Ok(result.Data);
 		}
 
 		[HttpPatch("password")]
