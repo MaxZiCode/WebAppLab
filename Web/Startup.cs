@@ -34,7 +34,7 @@ namespace WebAppLab
 		public void ConfigureServices(IServiceCollection services)
 		{
 			string connectionString = Environment.IsProduction() ? "PublishConnection" : "DefaultConnection";
-			services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString(connectionString)));
+			services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString(connectionString))).AddDatabaseDeveloperPageExceptionFilter();
 
 			services
 				.AddSwaggerGen(c => c.SwaggerDoc("v1", new OpenApiInfo
