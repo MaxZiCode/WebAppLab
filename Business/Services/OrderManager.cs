@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 using WebAppLab.Data;
 using WebAppLab.Data.Models;
+using WebAppLab.Helpers;
 using WebAppLab.Models;
 
 namespace WebAppLab.Services
@@ -22,14 +23,14 @@ namespace WebAppLab.Services
 
 		public async Task<Order> AddProductAsync(string userId, AddProductData data)
 		{
-			Order order = await GetOrderForUserAsync(userId, includeProductAmounts: true, track: true);
+			Order order = await OrdersHelper.GetOrderForUserAsync(context.Orders, userId, includeProductAmounts: true, track: true);
 			if (order == null)
 			{
 				order = new() { UserId = userId, ProductAmounts = new HashSet<ProductAmount>() };
 				await context.Orders.AddAsync(order);
 			}
 
-			ProductAmount productAmount = order.ProductAmounts.FirstOrDefault(pa => pa.ProductId == data.ProductId);
+			ProductAmount productAmount = order.ProductAmounts.SingleOrDefault(pa => pa.ProductId == data.ProductId);
 			if (productAmount == null)
 			{
 				productAmount = new() { ProductId = data.ProductId, OrderId = order.Id, Amount = data.Amount };
@@ -46,7 +47,7 @@ namespace WebAppLab.Services
 
 		public async Task<IEnumerable<ProductAmount>> GetProductsAsync(string userId, Guid? orderId = null)
 		{
-			Guid? orderToSearch = orderId ?? (await GetOrderForUserAsync(userId))?.Id;
+			Guid? orderToSearch = orderId ?? (await OrdersHelper.GetOrderForUserAsync(context.Orders, userId))?.Id;
 			if (orderToSearch == null)
 				return Enumerable.Empty<ProductAmount>();
 
@@ -56,7 +57,7 @@ namespace WebAppLab.Services
 
 		public async Task DeleteProductsAsync(string userId, IEnumerable<Guid> productIds)
 		{
-			var order = await GetOrderForUserAsync(userId, includeProductAmounts: true, track: true);
+			var order = await OrdersHelper.GetOrderForUserAsync(context.Orders, userId, includeProductAmounts: true, track: true);
 			if (order == null)
 				return;
 
@@ -72,26 +73,13 @@ namespace WebAppLab.Services
 
 		public async Task BuyProductsAsync(string userId)
 		{
-			var order = await GetOrderForUserAsync(userId, track: true);
+			var order = await OrdersHelper.GetOrderForUserAsync(context.Orders, userId, track: true);
 			if (order == null)
 				return;
 
 			order.IsCompleted = true;
 
 			await context.SaveChangesAsync();
-		}
-
-		private async Task<Order> GetOrderForUserAsync(string userId, bool track = false, bool includeProductAmounts = false)
-		{
-			IQueryable<Order> orders = context.Orders;
-
-			if (!track)
-				orders = orders.AsNoTracking();
-
-			if (includeProductAmounts)
-				orders = orders.Include(o => o.ProductAmounts);
-
-			return await orders.FirstOrDefaultAsync(o => o.UserId == userId);
 		}
 	}
 }

@@ -1,10 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 using WebAppLab.Data;
 
@@ -17,7 +13,7 @@ namespace WebAppLab.Tests
 		protected DbRequiredTests()
 		{
 			ContextOptions = new DbContextOptionsBuilder<ApplicationDbContext>()
-				.UseInMemoryDatabase("Default")
+				.UseInMemoryDatabase(Guid.NewGuid().ToString())
 				.Options;
 
 			Seed();

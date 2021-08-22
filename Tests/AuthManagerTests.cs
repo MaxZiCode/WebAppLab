@@ -1,65 +1,81 @@
-﻿using Xunit;
-using FakeItEasy;
-using AutoFixture;
+﻿using FakeItEasy;
 
-using Microsoft.AspNetCore.Identity;
-using WebAppLab.Data.Models;
-using WebAppLab.Services;
 using Microsoft.AspNetCore.Http;
-using System.Threading.Tasks;
-using WebAppLab.Wrappers;
-using System;
-
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
-using System.Collections.Generic;
+using Microsoft.Extensions.Logging;
+
+using System;
+using System.Threading.Tasks;
+
+using WebAppLab.Constants;
 using WebAppLab.Data;
+using WebAppLab.Data.Models;
+using WebAppLab.Helpers;
+using WebAppLab.Services;
+
+using Xunit;
 
 namespace WebAppLab.Tests
 {
-	public class AuthManagerTests
+	public class AuthManagerTests : DbRequiredTests, IAsyncDisposable
 	{
-		private readonly UserManager<User> userManager;
-		private readonly SignInManager<User> signInManager;
-		private readonly IConfirmEmailSender confirmEmailSender;
-		private readonly AuthManager authManager;
-
 		const string validEmail = "example@example.com";
 		const string invalidEmail = "invalid";
 		const string validPassword = "AJNlbBjp5ZD1*!";
 		const string invalidPassword = "invalid";
 
-		string email = validEmail;
-		string password = validPassword;
+		private readonly IConfirmEmailSender confirmEmailSender;
+		private readonly HttpContext httpContext;
+		private readonly ApplicationDbContext context;
+		private readonly UserManager<User> userManager;
+		private readonly SignInManager<User> signInManager;
+		private readonly AuthManager authManager;
 
 		public AuthManagerTests()
 		{
-			userManager = A.Fake<UserManager<User>>();
-			signInManager = A.Fake<SignInManager<User>>();
 			confirmEmailSender = A.Fake<IConfirmEmailSender>();
-			authManager = new AuthManager(userManager, signInManager, confirmEmailSender);
+			httpContext = new DefaultHttpContext();
+			context = new(ContextOptions);
+
+			userManager = new(new UserStore<User>(context), null, new PasswordHasher<User>(), null, null, null, new IdentityErrorDescriber(), null, A.Fake<ILogger<UserManager<User>>>());
+			userManager.RegisterTokenProvider("Default", new EmailTokenProvider<User>());
+
+			signInManager = A.Fake<SignInManager<User>>();
+			A.CallTo(() => signInManager.PasswordSignInAsync(A<string>.Ignored, A<string>.Ignored, A<bool>.Ignored, A<bool>.Ignored)).WhenArgumentsMatch(args => (string)args[0] == validEmail && (string)args[1] == validPassword).Returns(SignInResult.Success);
+
+			authManager = new(userManager, signInManager, confirmEmailSender);
+
+			RoleManager<IdentityRole> roleManager = new(new RoleStore<IdentityRole>(context), null, null, null, null);
+			DbFiller.EnsureRolesCreatedAsync(roleManager).Wait();
 		}
 
 		[Fact]
-		public async Task Can_SignUp()
+		public async Task Can_signup_with_sending_confirmation_code()
 		{
-			SetupSignUp();
+			var email = validEmail;
+			var password = validPassword;
+			var role = Roles.User;
 
-			var result = await authManager.SignUpAsync(A.Fake<HttpContext>(), email, password, string.Empty);
+			var result = await authManager.SignUpAsync(httpContext, email, password, role);
 
-			A.CallTo(() => userManager.CreateAsync(A<User>.Ignored, A<string>.Ignored)).MustHaveHappened();
-			A.CallTo(() => userManager.AddToRoleAsync(A<User>.Ignored, A<string>.Ignored)).MustHaveHappened();
-			A.CallTo(() => confirmEmailSender.SendAsync(A<HttpContext>.Ignored, A<string>.Ignored, A<string>.Ignored, A<string>.Ignored)).MustHaveHappened();
 			Assert.True(result.Succeeded, result.FailMessage);
+
+			var signedUpUser = GetUser(email);
+			Assert.NotNull(signedUpUser);
+
+			A.CallTo(() => confirmEmailSender.SendAsync(httpContext, email, A<string>.Ignored, A<string>.Ignored)).MustHaveHappened();
 		}
 
 		[Fact]
 		public async Task Cannot_SignUp_incorrect_email()
 		{
-			SetupSignUp();
-			email = invalidEmail;
+			var email = invalidEmail;
+			var password = validPassword;
+			var role = Roles.User;
 
-			var result = await MakeSignUp();
+			var result = await authManager.SignUpAsync(httpContext, email, password, role);
 
 			Assert.Contains("email", result.FailMessage, StringComparison.OrdinalIgnoreCase);
 		}
@@ -67,79 +83,41 @@ namespace WebAppLab.Tests
 		[Fact]
 		public async Task Cannot_SignUp_incorrect_password()
 		{
-			SetupSignUp();
-			password = invalidPassword;
+			var email = validEmail;
+			var password = invalidPassword;
+			var role = Roles.User;
 
-			var result = await MakeSignUp();
+			var result = await authManager.SignUpAsync(httpContext, email, password, role);
 
 			Assert.Contains("password", result.FailMessage, StringComparison.OrdinalIgnoreCase);
 		}
 
 		[Fact]
-		public async Task Cannot_SignUp_fail_create()
-		{
-			SetupSignUp(failCreate: true);
-
-			var result = await MakeSignUp();
-
-			Assert.Contains("create", result.FailMessage);
-		}
-
-		[Fact]
-		public async Task Cannot_SignUp_fail_add_role()
-		{
-			SetupSignUp(failAddRole: true);
-
-			var result = await MakeSignUp();
-
-			Assert.Contains("role", result.FailMessage);
-		}
-
-		private void SetupSignUp(bool failCreate = false, bool failAddRole = false)
-		{
-			if (!failCreate)
-				A.CallTo(() => userManager.CreateAsync(A<User>.Ignored, A<string>._)).Returns(IdentityResult.Success);
-
-			if (!failAddRole)
-				A.CallTo(() => userManager.AddToRoleAsync(A<User>.Ignored, A<string>._)).Returns(IdentityResult.Success);
-		}
-
-		private async Task<Result> MakeSignUp()
-		{
-			return await authManager.SignUpAsync(A.Fake<HttpContext>(), email, password, string.Empty);
-		}
-
-		[Fact]
 		public async Task Can_SignIn()
 		{
-			SetupSignIn();
+			var email = validEmail;
+			var password = validPassword;
 
-			var result = await authManager.SignInAsync(validEmail, validPassword);
+			var result = await authManager.SignInAsync(email, password);
 
-			A.CallTo(() => signInManager.PasswordSignInAsync(A<string>.Ignored, A<string>.Ignored, A<bool>.Ignored, A<bool>.Ignored));
 			Assert.True(result.Succeeded, result.FailMessage);
 		}
 
-		[Fact]
-		public async Task Cannot_SignIn()
+		[Theory]
+		[InlineData(invalidEmail, invalidPassword)]
+		[InlineData(validEmail, invalidPassword)]
+		[InlineData(invalidEmail, validPassword)]
+		public async Task Cannot_SignIn(string email, string password)
 		{
-			SetupSignIn(fail: true);
-
-			var result = await authManager.SignInAsync(invalidEmail, invalidPassword);
+			var result = await authManager.SignInAsync(email, password);
 
 			Assert.False(result.Succeeded);
-		}
-
-		private void SetupSignIn(bool fail = false)
-		{
-			if (!fail)
-				A.CallTo(() => signInManager.PasswordSignInAsync(A<string>._, A<string>._, A<bool>._, A<bool>._)).Returns(SignInResult.Success);
 		}
 
 		[Fact]
 		public async Task Can_SignOut()
 		{
-			var result = await authManager.SignOutAsync();
+			await authManager.SignOutAsync();
 
 			A.CallTo(() => signInManager.SignOutAsync()).MustHaveHappened();
 		}
@@ -147,28 +125,41 @@ namespace WebAppLab.Tests
 		[Fact]
 		public async Task Can_ConfirmEmail()
 		{
-			SetupConfirmEmail();
+			var user = new User() { UserName = validEmail, Email = validEmail };
+			await userManager.CreateAsync(user, validPassword);
+			user = await GetUser(user.Email);
+			var code = await userManager.GenerateEmailConfirmationTokenAsync(user);
 
-			var result = await authManager.ConfirmEmail(string.Empty, string.Empty);
-
-			A.CallTo(() => userManager.ConfirmEmailAsync(A<User>.Ignored, A<string>.Ignored)).MustHaveHappened();
+			var result = await authManager.ConfirmEmail(user.Id, code);
 			Assert.True(result.Succeeded, result.FailMessage);
+
+			var assertUser = await GetUser(user.Email);
+			Assert.True(assertUser.EmailConfirmed);
 		}
 
 		[Fact]
 		public async Task Cannot_ConfirmEmail_incorrect_code()
 		{
-			SetupConfirmEmail(fail: true);
+			var user = new User() { UserName = validEmail, Email = validEmail };
+			await userManager.CreateAsync(user, validPassword);
+			user = await GetUser(user.Email);
+			var code = "invalid";
 
-			var result = await authManager.ConfirmEmail(string.Empty, string.Empty);
-
+			var result = await authManager.ConfirmEmail(user.Id, code);
 			Assert.False(result.Succeeded);
+
+			var assertUser = await GetUser(user.Email);
+			Assert.False(assertUser.EmailConfirmed);
 		}
 
-		private void SetupConfirmEmail(bool fail = false)
+		private async Task<User> GetUser(string email)
 		{
-			if (!fail)
-				A.CallTo(() => userManager.ConfirmEmailAsync(A<User>._, A<string>._)).Returns(IdentityResult.Success);
+			return await context.Users.FirstOrDefaultAsync(u => u.Email == email);
+		}
+
+		public ValueTask DisposeAsync()
+		{
+			return ((IAsyncDisposable)context).DisposeAsync();
 		}
 	}
 }
