@@ -96,6 +96,7 @@ namespace WebAppLab.Infrastructure
 		public static IServiceCollection AddOrderManager(this IServiceCollection services)
 		{
 			services
+				.AddScoped<IOrderRepository, OrderRepository>()
 				.AddScoped<IOrderManager, OrderManager>();
 
 			return services;

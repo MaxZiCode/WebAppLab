@@ -18,12 +18,14 @@ namespace WebAppLab.Tests
 	public class OrderManagerTests : DbRequiredTests, IAsyncDisposable
 	{
 		private readonly ApplicationDbContext context;
+		private readonly IOrderRepository orderRepository;
 		private readonly OrderManager orderManager;
 
 		public OrderManagerTests()
 		{
 			context = new ApplicationDbContext(ContextOptions);
-			orderManager = new OrderManager(context);
+			orderRepository = new OrderRepository(context);
+			orderManager = new OrderManager(orderRepository);
 		}
 
 		[Fact]
@@ -33,7 +35,7 @@ namespace WebAppLab.Tests
 
 			await orderManager.AddProductAsync(userId, addProductData);
 
-			Order dbOrder = await OrdersHelper.GetOrderForUserAsync(context.Orders, userId);
+			Order dbOrder = await orderRepository.GetForUserAsync(userId);
 			Assert.NotNull(dbOrder);
 		}
 
@@ -46,7 +48,7 @@ namespace WebAppLab.Tests
 			await orderManager.AddProductAsync(userId, firstAddProductData);
 			await orderManager.AddProductAsync(userId, secondAddProductData);
 
-			Order dbOrder = await OrdersHelper.GetOrderForUserAsync(context.Orders, userId, includeProductAmounts: true);
+			Order dbOrder = await orderRepository.GetForUserAsync(userId, includeProductAmounts: true);
 			Assert.Contains(dbOrder.ProductAmounts, pa => pa.ProductId == firstAddProductData.ProductId);
 			Assert.Contains(dbOrder.ProductAmounts, pa => pa.ProductId == secondAddProductData.ProductId);
 		}
@@ -61,7 +63,7 @@ namespace WebAppLab.Tests
 			await orderManager.AddProductAsync(userId, firstAddProductData);
 			await orderManager.AddProductAsync(userId, secondAddProductData);
 
-			Order dbOrder = await OrdersHelper.GetOrderForUserAsync(context.Orders, userId, includeProductAmounts: true);
+			Order dbOrder = await orderRepository.GetForUserAsync(userId, includeProductAmounts: true);
 			int expected = firstAddProductData.Amount + secondAddProductData.Amount;
 			int actual = dbOrder.ProductAmounts.First().Amount;
 			Assert.Equal(expected, actual);
