@@ -52,7 +52,7 @@ namespace WebAppLab.Tests
 		}
 
 		[Fact]
-		public async Task Can_signup_with_sending_confirmation_code()
+		public async Task SignUpAsync_ValidData_ResultSucceededUserExistsConfirmationEmailSended()
 		{
 			var email = validEmail;
 			var password = validPassword;
@@ -69,7 +69,7 @@ namespace WebAppLab.Tests
 		}
 
 		[Fact]
-		public async Task Cannot_SignUp_incorrect_email()
+		public async Task SignUpAsync_InvalidEmail_FailMessageContainsEmailWord()
 		{
 			var email = invalidEmail;
 			var password = validPassword;
@@ -81,7 +81,7 @@ namespace WebAppLab.Tests
 		}
 
 		[Fact]
-		public async Task Cannot_SignUp_incorrect_password()
+		public async Task SignUpAsync_InvalidPassword_FailMessageContainsPasswordWord()
 		{
 			var email = validEmail;
 			var password = invalidPassword;
@@ -93,7 +93,7 @@ namespace WebAppLab.Tests
 		}
 
 		[Fact]
-		public async Task Can_SignIn()
+		public async Task SignInAsync_ValidData_ResultSucceeded()
 		{
 			var email = validEmail;
 			var password = validPassword;
@@ -107,7 +107,7 @@ namespace WebAppLab.Tests
 		[InlineData(invalidEmail, invalidPassword)]
 		[InlineData(validEmail, invalidPassword)]
 		[InlineData(invalidEmail, validPassword)]
-		public async Task Cannot_SignIn(string email, string password)
+		public async Task SignInAsync_InvalidDataVary_ResultNotSucceeded(string email, string password)
 		{
 			var result = await authManager.SignInAsync(email, password);
 
@@ -115,7 +115,7 @@ namespace WebAppLab.Tests
 		}
 
 		[Fact]
-		public async Task Can_SignOut()
+		public async Task SignOutAsync_NoData_CallsSignInManagerSignOut()
 		{
 			await authManager.SignOutAsync();
 
@@ -123,14 +123,14 @@ namespace WebAppLab.Tests
 		}
 
 		[Fact]
-		public async Task Can_ConfirmEmail()
+		public async Task ConfirmEmailAsync_ValidCode_ResultSucceededUserEmailConfirmed()
 		{
 			var user = new User() { UserName = validEmail, Email = validEmail };
 			await userManager.CreateAsync(user, validPassword);
 			user = await GetUser(user.Email);
 			var code = await userManager.GenerateEmailConfirmationTokenAsync(user);
 
-			var result = await authManager.ConfirmEmail(user.Id, code);
+			var result = await authManager.ConfirmEmailAsync(user.Id, code);
 			Assert.True(result.Succeeded, result.FailMessage);
 
 			var assertUser = await GetUser(user.Email);
@@ -138,14 +138,14 @@ namespace WebAppLab.Tests
 		}
 
 		[Fact]
-		public async Task Cannot_ConfirmEmail_incorrect_code()
+		public async Task ConfirmEmailAsync_InvalidCode_ResultNotSucceededUserEmailNotConfirmed()
 		{
 			var user = new User() { UserName = validEmail, Email = validEmail };
 			await userManager.CreateAsync(user, validPassword);
 			user = await GetUser(user.Email);
 			var code = "invalid";
 
-			var result = await authManager.ConfirmEmail(user.Id, code);
+			var result = await authManager.ConfirmEmailAsync(user.Id, code);
 			Assert.False(result.Succeeded);
 
 			var assertUser = await GetUser(user.Email);

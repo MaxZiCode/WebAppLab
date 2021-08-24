@@ -1,4 +1,3 @@
-
 using FakeItEasy;
 
 using Microsoft.AspNetCore.Http;
@@ -35,7 +34,7 @@ namespace WebAppLab.Tests
 		}
 
 		[Fact]
-		public async Task GetUser_StatusCode200()
+		public async Task GetUser_UserExists_OkObjectResult()
 		{
 			A.CallTo(() => userChanger.GetUserAsync(A<string>.Ignored)).Returns(A.Fake<UserViewModel>());
 
@@ -45,7 +44,7 @@ namespace WebAppLab.Tests
 		}
 
 		[Fact]
-		public async Task ChangeUser_Fail_StatusCode400()
+		public async Task ChangeUser_InvalidUserViewModel_BadRequestObjectResult()
 		{
 			var user = new UserViewModel();
 			A.CallTo(() => userChanger.ChangeAsync(A<string>.Ignored, A<UserViewModel>.Ignored)).Returns(ValueResult<UserViewModel>.FromFail());
@@ -56,7 +55,7 @@ namespace WebAppLab.Tests
 		}
 
 		[Fact]
-		public async Task ChangeUser_Success_StatusCode200()
+		public async Task ChangeUser_ValidUserViewModel_OkObjectResult()
 		{
 			var user = new UserViewModel();
 			A.CallTo(() => userChanger.ChangeAsync(A<string>.Ignored, A<UserViewModel>.Ignored)).Returns(ValueResult<UserViewModel>.FromValue(user));
@@ -67,7 +66,7 @@ namespace WebAppLab.Tests
 		}
 
 		[Fact]
-		public async Task ChangePassword_Fail_StatusCode400()
+		public async Task ChangePassword_PatchWithInvalidPassword_BadRequestObjectResult()
 		{
 			A.CallTo(() => userChanger.ChangePasswordAsync(A<string>.Ignored, A<string>.Ignored)).Returns(Result.FromFail());
 
@@ -78,7 +77,7 @@ namespace WebAppLab.Tests
 		}
 
 		[Fact]
-		public async Task ChangePassword_Success_StatusCode200()
+		public async Task ChangePassword_PatchWithValidPassword_OkResult()
 		{
 			A.CallTo(() => userChanger.ChangePasswordAsync(A<string>.Ignored, A<string>.Ignored)).Returns(Result.Success);
 

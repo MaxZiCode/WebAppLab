@@ -61,7 +61,7 @@ namespace WebAppLab.Controllers
 		[HttpGet("ConfirmEmail")]
 		public async Task<IActionResult> ConfirmEmail(string userId, string code)
 		{
-			var result = await authManager.ConfirmEmail(userId, code);
+			var result = await authManager.ConfirmEmailAsync(userId, code);
 			if (!result.Succeeded)
 			{
 				logger.LogError(result.FailMessage);

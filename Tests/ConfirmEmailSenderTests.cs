@@ -3,6 +3,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 
+using System;
 using System.Threading.Tasks;
 
 using WebAppLab.Services;
@@ -25,14 +26,15 @@ namespace WebAppLab.Tests
 		}
 
 		[Fact]
-		public async Task Can_Send()
+		public async Task SendAsync_AnyData_CallsEmailSederSendAsync()
 		{
-			var email = "email";
-			var userId = "1";
-			var code = "code";
+			var email = Guid.NewGuid().ToString();
+			var userId = Guid.NewGuid().ToString();
+			var code = Guid.NewGuid().ToString();
+
 			await confirmEmailSender.SendAsync(A.Fake<HttpContext>(), email, userId, code);
 
-			A.CallTo(() => emailSender.SendAsync(email, A<string>.Ignored, A<string>.Ignored));
+			A.CallTo(() => emailSender.SendAsync(email, A<string>.Ignored, A<string>.Ignored)).MustHaveHappened();
 		}
 	}
 }
