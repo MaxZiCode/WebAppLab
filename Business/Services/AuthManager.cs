@@ -60,7 +60,7 @@ namespace WebAppLab.Services
 			return Result.Success;
 		}
 
-		public async Task<Result> ConfirmEmail(string userId, string code)
+		public async Task<Result> ConfirmEmailAsync(string userId, string code)
 		{
 			var user = await userManager.FindByIdAsync(userId);
 			var result = await userManager.ConfirmEmailAsync(user, code);

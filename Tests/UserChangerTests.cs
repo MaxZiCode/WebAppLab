@@ -54,7 +54,7 @@ namespace WebAppLab.Tests
 		}
 
 		[Fact]
-		public async Task Can_get_user_from_Db_and_set_cache()
+		public async Task GetUserAsync_ExistingUserId_ReturnsUserAndCacheSetted()
 		{
 			var actualUser = await userChanger.GetUserAsync(dbUser.Id);
 
@@ -65,7 +65,7 @@ namespace WebAppLab.Tests
 		}
 
 		[Fact]
-		public async Task Can_get_user_from_cache()
+		public async Task GetUserAsync_ExistingUserSettedInCache_ReturnsUserFromCache()
 		{
 			UserViewModel cachedUser = new() { Email = "cacheEmail@example.com" };
 			cache.Set(CacheKeys.User, cachedUser);
@@ -76,7 +76,7 @@ namespace WebAppLab.Tests
 		}
 
 		[Fact]
-		public async Task Can_change_and_remove_cache()
+		public async Task ChangeAsync_UserViewModelWithValidEmailAndPhone_RetunrsChangedUserAndChangesInDbAndCacheHasDeleted()
 		{
 			UserViewModel changedUser = mapper.Map<UserViewModel>(dbUser);
 			changedUser.Email = "changed@example.com";
@@ -99,59 +99,59 @@ namespace WebAppLab.Tests
 		}
 
 		[Fact]
-		public async Task Cannot_change_invalid_email()
+		public async Task ChangeAsync_UserViewModelWithInvalidEmail_RetunrsResultFailMessageContainsEmailWordAndContextNotChanged()
 		{
 			UserViewModel changedUser = mapper.Map<UserViewModel>(dbUser);
 			changedUser.Email = "changed";
+			bool changed = false;
+			context.ChangeTracker.StateChanged += (o, e) => changed = true;
 
 			var result = await userChanger.ChangeAsync(dbUser.Id, changedUser);
 
 			Assert.Contains("email", result.FailMessage, StringComparison.OrdinalIgnoreCase);
-
-			var changedDbUser = await context.Users.FindAsync(dbUser.Id);
-			Assert.NotEqual(changedUser.Email, changedDbUser.Email);
+			Assert.False(changed);
 		}
 
 		[Fact]
-		public async Task Cannot_change_invalid_phone()
+		public async Task ChangeAsync_UserViewModelWithInvalidPhone_RetunrsResultFailMessageContainsPhoneWordAndContextNotChanged()
 		{
 			UserViewModel changedUser = mapper.Map<UserViewModel>(dbUser);
 			changedUser.PhoneNumber = "911";
+			bool changed = false;
+			context.ChangeTracker.StateChanged += (o, e) => changed = true;
 
 			var result = await userChanger.ChangeAsync(dbUser.Id, changedUser);
 
 			Assert.Contains("phone", result.FailMessage, StringComparison.OrdinalIgnoreCase);
-
-			var changedDbUser = await context.Users.FindAsync(dbUser.Id);
-			Assert.NotEqual(changedUser.PhoneNumber, changedDbUser.PhoneNumber);
+			Assert.False(changed);
 		}
 
 		[Fact]
-		public async Task Can_change_password()
+		public async Task ChangePasswordAsync_NewValidPassword_RetunrsResultSuccessedAndContextChanged()
 		{
 			string passwordHashBefore = dbUser.PasswordHash;
 			string newPassword = "uac555444ALLL!***";
+			bool changed = false;
+			context.ChangeTracker.StateChanged += (o, e) => changed = true;
 
 			var result = await userChanger.ChangePasswordAsync(dbUser.Id, newPassword);
 
 			Assert.True(result.Succeeded);
-
-			string passwordHashAfter = (await context.Users.FindAsync(dbUser.Id)).PasswordHash;
-			Assert.NotEqual(passwordHashBefore, passwordHashAfter);
+			Assert.True(changed);
 		}
 
 		[Fact]
-		public async Task Cannot_change_password()
+		public async Task ChangePasswordAsync_NewInvalidPassword_RetunrsResultFailMessageContainsPasswordWordAndContextNotChanged()
 		{
 			string passwordHashBefore = dbUser.PasswordHash;
 			string newPassword = "fail";
+			bool changed = false;
+			context.ChangeTracker.StateChanged += (o, e) => changed = true;
 
 			var result = await userChanger.ChangePasswordAsync(dbUser.Id, newPassword);
 
 			Assert.Contains("password", result.FailMessage, StringComparison.OrdinalIgnoreCase);
-
-			string passwordHashAfter = (await context.Users.FindAsync(dbUser.Id)).PasswordHash;
-			Assert.Equal(passwordHashBefore, passwordHashAfter);
+			Assert.False(changed);
 		}
 
 		public ValueTask DisposeAsync()

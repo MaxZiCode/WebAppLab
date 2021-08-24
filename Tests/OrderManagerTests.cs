@@ -15,53 +15,56 @@ using Xunit;
 
 namespace WebAppLab.Tests
 {
-	public class OrderManagerTests : DbRequiredTests
+	public class OrderManagerTests : DbRequiredTests, IAsyncDisposable
 	{
+		private readonly ApplicationDbContext context;
+		private readonly OrderManager orderManager;
+
+		public OrderManagerTests()
+		{
+			context = new ApplicationDbContext(ContextOptions);
+			orderManager = new OrderManager(context);
+		}
+
 		[Fact]
-		public async Task Can_add_product_and_create_new_order()
+		public async Task AddProductAsync_ValidData_OrderExistsInDb()
 		{
 			GetAddProductArgs(out string userId, out AddProductData addProductData);
 
-			var resultOrder = await TestOrderManagerMethod(om => om.AddProductAsync(userId, addProductData));
+			await orderManager.AddProductAsync(userId, addProductData);
 
-			Order dbOrder = await GetOrderForUserAsync(userId);
+			Order dbOrder = await OrdersHelper.GetOrderForUserAsync(context.Orders, userId);
 			Assert.NotNull(dbOrder);
 		}
 
 		[Fact]
-		public async Task Can_add_product_to_existing_order()
+		public async Task AddProductAsync_TwoAddProductDatasSameUser_OneOrderContainsAllProducts()
 		{
 			GetAddProductArgs(out string userId, out AddProductData firstAddProductData);
 			GetAddProductArgs(out _, out AddProductData secondAddProductData);
 
-			await TestOrderManagerMethod(om => om.AddProductAsync(userId, firstAddProductData));
-			await TestOrderManagerMethod(om => om.AddProductAsync(userId, secondAddProductData));
+			await orderManager.AddProductAsync(userId, firstAddProductData);
+			await orderManager.AddProductAsync(userId, secondAddProductData);
 
-			Order dbOrder = await GetOrderForUserAsync(userId);
+			Order dbOrder = await OrdersHelper.GetOrderForUserAsync(context.Orders, userId, includeProductAmounts: true);
 			Assert.Contains(dbOrder.ProductAmounts, pa => pa.ProductId == firstAddProductData.ProductId);
 			Assert.Contains(dbOrder.ProductAmounts, pa => pa.ProductId == secondAddProductData.ProductId);
 		}
 
 		[Fact]
-		public async Task Can_add_product_that_exists_and_increase_amount()
+		public async Task AddProductAsync_TwoAddProductDatasSameUserSameProductId_ProductAmountContainsSumOfAllAmounts()
 		{
 			GetAddProductArgs(out string userId, out AddProductData firstAddProductData);
 			GetAddProductArgs(out _, out AddProductData secondAddProductData);
 			secondAddProductData.ProductId = firstAddProductData.ProductId;
 
-			await TestOrderManagerMethod(om => om.AddProductAsync(userId, firstAddProductData));
-			await TestOrderManagerMethod(om => om.AddProductAsync(userId, secondAddProductData));
+			await orderManager.AddProductAsync(userId, firstAddProductData);
+			await orderManager.AddProductAsync(userId, secondAddProductData);
 
-			Order dbOrder = await GetOrderForUserAsync(userId);
+			Order dbOrder = await OrdersHelper.GetOrderForUserAsync(context.Orders, userId, includeProductAmounts: true);
 			int expected = firstAddProductData.Amount + secondAddProductData.Amount;
 			int actual = dbOrder.ProductAmounts.First().Amount;
 			Assert.Equal(expected, actual);
-		}
-
-		private async Task<Order> GetOrderForUserAsync(string userId)
-		{
-			using var assertContext = new ApplicationDbContext(ContextOptions);
-			return await OrdersHelper.GetOrderForUserAsync(assertContext.Orders, userId, includeProductAmounts: true);
 		}
 
 		private void GetAddProductArgs(out string userId, out AddProductData addProductData)
@@ -75,127 +78,121 @@ namespace WebAppLab.Tests
 		}
 
 		[Fact]
-		public async Task Can_get_products_with_userId_and_orderId_choose_orderId()
+		public async Task GetProductsAsync_ExistingUserIdOrderId_ReturnsAllProductAmountsFromOrderWithThisId()
 		{
 			var orders = GenerateOrders().ToList();
 			var userId = orders[0].UserId;
 			var orderId = orders[1].Id;
 			await SeedOrders(orders);
 
-			var products = await TestOrderManagerMethod(om => om.GetProductsAsync(userId, orderId));
+			var productAmounts = await orderManager.GetProductsAsync(userId, orderId);
 
-			Assert.All(products, pa => Assert.Equal(orderId, pa.OrderId));
+			Assert.All(productAmounts, pa => Assert.Equal(orderId, pa.OrderId));
 		}
 
 		[Fact]
-		public async Task Can_get_products_with_userId()
+		public async Task GetProductsAsync_ExistingUserId_ReturnsAllProductAmountsFromOrderWithUserId()
 		{
 			var orders = GenerateOrders().ToList();
 			Order order = orders[0];
 			await SeedOrders(orders);
 
-			var products = await TestOrderManagerMethod(om => om.GetProductsAsync(order.UserId));
+			var products = await orderManager.GetProductsAsync(order.UserId);
 
 			Assert.All(products, pa => Assert.Equal(order.Id, pa.OrderId));
 		}
 
 		[Fact]
-		public async Task Can_get_products_with_orderId()
+		public async Task GetProductsAsync_ExistingOrderId_ReturnsAllProductAmountsFromOrderWithThisId()
 		{
 			var orders = GenerateOrders().ToList();
 			Order order = orders[0];
 			await SeedOrders(orders);
 
-			var products = await TestOrderManagerMethod(om => om.GetProductsAsync(null, order.Id));
+			var products = await orderManager.GetProductsAsync(null, order.Id);
 
 			Assert.All(products, pa => Assert.Equal(order.Id, pa.OrderId));
 		}
 
 		[Fact]
-		public async Task Cannot_get_products_with_null_arguments()
+		public async Task GetProductsAsync_Nulls_ReturnsEmptyProductAmountsCollection()
 		{
 			var orders = GenerateOrders();
 			await SeedOrders(orders);
 
-			var products = await TestOrderManagerMethod(om => om.GetProductsAsync(null, null));
+			var productAmounts = await orderManager.GetProductsAsync(null, null);
 
-			Assert.Empty(products);
+			Assert.Empty(productAmounts);
 		}
 
 		[Fact]
-		public async Task Can_delete_products()
+		public async Task DeleteProductsAsync_SomeProductAmountIdsFromOrder_OrderDoesNotContainsTheseProductAmounts()
 		{
 			var orders = GenerateOrders().ToList();
 			Order order = orders[0];
 			var productIdsToDelete = order.ProductAmounts.Take(2).Select(p => p.ProductId).ToList();
 			await SeedOrders(orders);
 
-			await TestOrderManagerMethod(om => om.DeleteProductsAsync(order.UserId, productIdsToDelete));
+			await orderManager.DeleteProductsAsync(order.UserId, productIdsToDelete);
 
-			using var context = new ApplicationDbContext(ContextOptions);
 			var assertOrder = await context.Orders.Include(o => o.ProductAmounts).FirstAsync(o => o.Id == order.Id);
 			Assert.DoesNotContain(assertOrder.ProductAmounts, pa => productIdsToDelete.Contains(pa.ProductId));
 		}
 
 		[Fact]
-		public async Task Cannot_delete_products_if_order_for_user_not_found()
+		public async Task DeleteProductsAsync_IdOfUserWithoutOrder_ContextNotChanged()
 		{
 			var orders = GenerateOrders().ToList();
-			Order order = orders[0];
-			string userId = Guid.NewGuid().ToString();
-			var productIdsToDelete = order.ProductAmounts.Select(p => p.ProductId).ToList();
 			await SeedOrders(orders);
+			bool changed = false;
+			context.ChangeTracker.StateChanged += (o, e) => changed = true;
+			string userId = Guid.NewGuid().ToString();
+			var productIdsToDelete = orders[0].ProductAmounts.Select(p => p.ProductId).ToList();
 
-			await TestOrderManagerMethod(om => om.DeleteProductsAsync(userId, productIdsToDelete));
+			await orderManager.DeleteProductsAsync(userId, productIdsToDelete);
 
-			var expected = orders.SelectMany(o => o.ProductAmounts).Count();
-			using var context = new ApplicationDbContext(ContextOptions);
-			var actual = await context.Orders.Include(o => o.ProductAmounts).SelectMany(o => o.ProductAmounts).CountAsync();
-			Assert.Equal(expected, actual);
+			Assert.False(changed);
 		}
 
 		[Fact]
-		public async Task Can_delete_products_and_order_when_no_products()
+		public async Task DeleteProductsAsync_AllProductAmountIdsFromOrder_ThisOrderHasDeleted()
 		{
 			var orders = GenerateOrders().ToList();
 			Order order = orders[0];
 			var productIdsToDelete = order.ProductAmounts.Select(p => p.ProductId).ToList();
 			await SeedOrders(orders);
 
-			await TestOrderManagerMethod(om => om.DeleteProductsAsync(order.UserId, productIdsToDelete));
+			await orderManager.DeleteProductsAsync(order.UserId, productIdsToDelete);
 
-			using var context = new ApplicationDbContext(ContextOptions);
 			var assertOrder = await context.Orders.FindAsync(order.Id);
 			Assert.Null(assertOrder);
 		}
 
 		[Fact]
-		public async Task Can_buy_products()
+		public async Task BuyProductsAsync_ExistingUserId_OrderOfUserIsCompleted()
 		{
 			var orders = GenerateOrders().ToList();
 			Order order = orders[0];
 			await SeedOrders(orders);
 
-			await TestOrderManagerMethod(om => om.BuyProductsAsync(order.UserId));
+			await orderManager.BuyProductsAsync(order.UserId);
 
-			using var context = new ApplicationDbContext(ContextOptions);
 			var assertOrder = await context.Orders.FindAsync(order.Id);
 			Assert.True(assertOrder.IsCompleted);
 		}
 
 		[Fact]
-		public async Task Cannot_buy_products_for_user_without_order()
+		public async Task BuyProductsAsync_UserWithNoOrderId_ContextNotChanged()
 		{
 			var orders = GenerateOrders().ToList();
-			Order order = orders[0];
-			string userId = Guid.NewGuid().ToString();
 			await SeedOrders(orders);
+			string userId = Guid.NewGuid().ToString();
+			bool changed = false;
+			context.ChangeTracker.StateChanged += (o, e) => changed = true;
 
-			await TestOrderManagerMethod(om => om.BuyProductsAsync(userId));
+			await orderManager.BuyProductsAsync(userId);
 
-			using var context = new ApplicationDbContext(ContextOptions);
-			var assertOrder = await context.Orders.FindAsync(order.Id);
-			Assert.False(assertOrder.IsCompleted);
+			Assert.False(changed);
 		}
 
 		private IEnumerable<Order> GenerateOrders(int count = 3)
@@ -225,23 +222,13 @@ namespace WebAppLab.Tests
 
 		private async Task SeedOrders(IEnumerable<Order> orders)
 		{
-			using var context = new ApplicationDbContext(ContextOptions);
 			await context.AddRangeAsync(orders);
 			await context.SaveChangesAsync();
 		}
 
-		private async Task TestOrderManagerMethod(Func<OrderManager, Task> methodPicker)
+		public ValueTask DisposeAsync()
 		{
-			using var context = new ApplicationDbContext(ContextOptions);
-			OrderManager orderManager = new(context);
-			await methodPicker(orderManager);
-		}
-
-		private async Task<T> TestOrderManagerMethod<T>(Func<OrderManager, Task<T>> methodPicker)
-		{
-			using var context = new ApplicationDbContext(ContextOptions);
-			OrderManager orderManager = new(context);
-			return await methodPicker(orderManager);
+			return ((IAsyncDisposable)context).DisposeAsync();
 		}
 	}
 }
