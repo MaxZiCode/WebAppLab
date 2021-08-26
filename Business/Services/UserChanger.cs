@@ -4,18 +4,16 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 
-using System.Security.Claims;
+using System;
+using System.Linq;
 using System.Threading.Tasks;
 
+using WebAppLab.Constants;
 using WebAppLab.Data;
 using WebAppLab.Data.Models;
-using WebAppLab.Extensions;
 using WebAppLab.Helpers;
 using WebAppLab.Models;
 using WebAppLab.Wrappers;
-using WebAppLab.Constants;
-using System;
-using System.Linq;
 
 namespace WebAppLab.Services
 {
@@ -34,21 +32,21 @@ namespace WebAppLab.Services
 			this.cache = cache;
 		}
 
-		public async Task<UserViewModel> GetUserAsync(ClaimsPrincipal claimsPrincipal)
+		public async Task<UserViewModel> GetUserAsync(string userId)
 		{
 			return await cache.GetOrCreateAsync(CacheKeys.User, async entry =>
 			{
 				entry.SlidingExpiration = TimeSpan.FromDays(1);
 
-				var userDbo = await GetUserFromDatabaseAsync(claimsPrincipal);
+				var userDbo = await GetUserFromDatabaseAsync(userId);
 				var user = mapper.Map<UserViewModel>(userDbo);
 				return user;
 			});
 		}
 
-		public async Task<ValueResult<UserViewModel>> ChangeAsync(ClaimsPrincipal claimsPrincipal, UserViewModel user)
+		public async Task<ValueResult<UserViewModel>> ChangeAsync(string userId, UserViewModel user)
 		{
-			var userDbo = await GetUserFromDatabaseAsync(claimsPrincipal, track: true);
+			var userDbo = await GetUserFromDatabaseAsync(userId, track: true);
 
 			bool isEmailCorrect = CheckUtility.CheckEmail(user.Email);
 			if (!isEmailCorrect)
@@ -66,29 +64,27 @@ namespace WebAppLab.Services
 			return ValueResult<UserViewModel>.FromValue(user);
 		}
 
-		public async Task<Result> ChangePasswordAsync(ClaimsPrincipal claimsPrincipal, string newPassword)
+		public async Task<Result> ChangePasswordAsync(string userId, string newPassword)
 		{
 			bool isPasswordCorrect = CheckUtility.CheckPassword(newPassword);
 			if (!isPasswordCorrect)
 				return Result.FromFail("Password is incorrect.");
 
-			var userDbo = await GetUserFromDatabaseAsync(claimsPrincipal, track: true);
+			var userDbo = await GetUserFromDatabaseAsync(userId, track: true);
 			var hashedPassword = userManager.PasswordHasher.HashPassword(userDbo, newPassword);
 			userDbo.PasswordHash = hashedPassword;
 			await context.SaveChangesAsync();
 			return Result.Success;
 		}
 
-		private async Task<User> GetUserFromDatabaseAsync(ClaimsPrincipal claimsPrincipal, bool track = false)
+		private async Task<User> GetUserFromDatabaseAsync(string userId, bool track = false)
 		{
-			var id = claimsPrincipal.GetId();
-
 			IQueryable<User> users = context.Users;
 
 			if (!track)
 				users = users.AsNoTracking();
 
-			return await users.FirstAsync(u => u.Id == id);
+			return await users.FirstAsync(u => u.Id == userId);
 		}
 	}
 }

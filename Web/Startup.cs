@@ -16,7 +16,6 @@ using WebAppLab.Data.Models;
 using WebAppLab.Helpers;
 using WebAppLab.Infrastructure;
 using WebAppLab.Models;
-using WebAppLab.Services;
 
 namespace WebAppLab
 {
@@ -34,9 +33,8 @@ namespace WebAppLab
 
 		public void ConfigureServices(IServiceCollection services)
 		{
-			services
-				.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")))
-				.AddDatabaseDeveloperPageExceptionFilter();
+			string connectionString = Environment.IsProduction() ? "PublishConnection" : "DefaultConnection";
+			services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString(connectionString))).AddDatabaseDeveloperPageExceptionFilter();
 
 			services
 				.AddSwaggerGen(c => c.SwaggerDoc("v1", new OpenApiInfo

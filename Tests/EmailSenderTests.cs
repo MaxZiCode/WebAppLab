@@ -1,10 +1,9 @@
-﻿using FakeItEasy;
-using AutoFixture;
+﻿using AutoFixture;
+
+using FakeItEasy;
 
 using MailKit;
 
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 
 using MimeKit;
@@ -13,10 +12,8 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-using WebAppLab.Data.Models;
 using WebAppLab.Infrastructure;
 using WebAppLab.Services;
-using WebAppLab.Wrappers;
 
 using Xunit;
 
@@ -36,9 +33,13 @@ namespace WebAppLab.Tests
 		}
 
 		[Fact]
-		public async Task Can_Send()
+		public async Task SendAsync_AnyData_CallsMailTransportSendAsync()
 		{
-			await emailSender.SendAsync("mail", string.Empty, string.Empty);
+			string email = Guid.NewGuid().ToString();
+			string subject = Guid.NewGuid().ToString();
+			string body = Guid.NewGuid().ToString();
+
+			await emailSender.SendAsync(email, subject, body);
 
 			A.CallTo(() => mail.SendAsync(A<MimeMessage>.Ignored, A<CancellationToken>.Ignored, A<ITransferProgress>.Ignored)).MustHaveHappened();
 		}

@@ -1,79 +1,72 @@
-﻿using FakeItEasy;
-using AutoFixture;
-
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Options;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 
+using WebAppLab.Data;
 using WebAppLab.Data.Models;
-using WebAppLab.Infrastructure;
+using WebAppLab.Helpers;
+using WebAppLab.Models;
 using WebAppLab.Services;
-using WebAppLab.Wrappers;
 
 using Xunit;
-using WebAppLab.Models;
-using System.Collections.Generic;
-using WebAppLab.Data;
 
 namespace WebAppLab.Tests
 {
-	public class OrderManagerTests : DbRequiredTests
+	public class OrderManagerTests : DbRequiredTests, IAsyncDisposable
 	{
-		[Fact]
-		public async Task Can_add_product_and_create_new_order_if_not_exists()
+		private readonly ApplicationDbContext context;
+		private readonly IOrderRepository orderRepository;
+		private readonly OrderManager orderManager;
+
+		public OrderManagerTests()
 		{
-			GetAddProductArgs(out string userId, out AddProductData addProductData);
-
-			await TestOrderManagerMethod(om => om.AddProductAsync(userId, addProductData));
-
-			using var assertContext = new ApplicationDbContext(ContextOptions);
-			Assert.Single(assertContext.Orders.AsNoTracking().Where(o => o.UserId == userId));
+			context = new ApplicationDbContext(ContextOptions);
+			orderRepository = new OrderRepository(context);
+			orderManager = new OrderManager(orderRepository);
 		}
 
 		[Fact]
-		public async Task Can_add_product_and_create_new_productAmount_if_not_exists_in_order()
+		public async Task AddProductAsync_ValidData_OrderExistsInDb()
 		{
 			GetAddProductArgs(out string userId, out AddProductData addProductData);
-			using var arrangeContext = new ApplicationDbContext(ContextOptions);
-			arrangeContext.Orders.Add(new Order() { UserId = userId });
-			await arrangeContext.SaveChangesAsync();
 
-			await TestOrderManagerMethod(om => om.AddProductAsync(userId, addProductData));
+			await orderManager.AddProductAsync(userId, addProductData);
 
-			using var assertContext = new ApplicationDbContext(ContextOptions);
-			Assert.Single(assertContext.ProductAmounts.AsNoTracking().Where(pa => pa.ProductId == addProductData.ProductId && pa.Amount == addProductData.Amount));
+			Order dbOrder = await orderRepository.GetForUserAsync(userId);
+			Assert.NotNull(dbOrder);
 		}
 
 		[Fact]
-		public async Task Can_add_product_and_increace_ammount_of_productAmount_if_exists()
+		public async Task AddProductAsync_TwoAddProductDatasSameUser_OneOrderContainsAllProducts()
 		{
-			GetAddProductArgs(out string userId, out AddProductData addProductData);
-			using var arrangeContext = new ApplicationDbContext(ContextOptions);
-			Order arrangeOrder = new()
-			{
-				UserId = userId,
-				ProductAmounts = new HashSet<ProductAmount>(new[] { new ProductAmount()
-				{
-					ProductId = addProductData.ProductId,
-					Amount = addProductData.Amount
-				} })
-			};
-			arrangeContext.Orders.Add(arrangeOrder);
-			await arrangeContext.SaveChangesAsync();
+			GetAddProductArgs(out string userId, out AddProductData firstAddProductData);
+			GetAddProductArgs(out _, out AddProductData secondAddProductData);
 
-			await TestOrderManagerMethod(om => om.AddProductAsync(userId, addProductData));
+			await orderManager.AddProductAsync(userId, firstAddProductData);
+			await orderManager.AddProductAsync(userId, secondAddProductData);
 
-			using var assertContext = new ApplicationDbContext(ContextOptions);
-			var assertProductAmount = await assertContext.ProductAmounts.AsNoTracking().SingleAsync(pa => pa.ProductId == addProductData.ProductId);
-			int expectedAmount = addProductData.Amount * 2;
-			int actualAmount = assertProductAmount.Amount;
-			Assert.Equal(expectedAmount, actualAmount);
+			Order dbOrder = await orderRepository.GetForUserAsync(userId, includeProductAmounts: true);
+			Assert.Contains(dbOrder.ProductAmounts, pa => pa.ProductId == firstAddProductData.ProductId);
+			Assert.Contains(dbOrder.ProductAmounts, pa => pa.ProductId == secondAddProductData.ProductId);
+		}
+
+		[Fact]
+		public async Task AddProductAsync_TwoAddProductDatasSameUserSameProductId_ProductAmountContainsSumOfAllAmounts()
+		{
+			GetAddProductArgs(out string userId, out AddProductData firstAddProductData);
+			GetAddProductArgs(out _, out AddProductData secondAddProductData);
+			secondAddProductData.ProductId = firstAddProductData.ProductId;
+
+			await orderManager.AddProductAsync(userId, firstAddProductData);
+			await orderManager.AddProductAsync(userId, secondAddProductData);
+
+			Order dbOrder = await orderRepository.GetForUserAsync(userId, includeProductAmounts: true);
+			int expected = firstAddProductData.Amount + secondAddProductData.Amount;
+			int actual = dbOrder.ProductAmounts.First().Amount;
+			Assert.Equal(expected, actual);
 		}
 
 		private void GetAddProductArgs(out string userId, out AddProductData addProductData)
@@ -81,17 +74,163 @@ namespace WebAppLab.Tests
 			userId = Guid.NewGuid().ToString();
 			addProductData = new()
 			{
-				Amount = new Random().Next(0, 100),
+				Amount = new Random().Next(1, 100),
 				ProductId = Guid.NewGuid()
 			};
-
 		}
 
-		private async Task TestOrderManagerMethod(Func<OrderManager, Task> methodPicker)
+		[Fact]
+		public async Task GetProductsAsync_ExistingUserIdOrderId_ReturnsAllProductAmountsFromOrderWithThisId()
 		{
-			using var context = new ApplicationDbContext(ContextOptions);
-			OrderManager orderManager = new(context);
-			await methodPicker(orderManager);
+			var orders = GenerateOrders().ToList();
+			var userId = orders[0].UserId;
+			var orderId = orders[1].Id;
+			await SeedOrders(orders);
+
+			var productAmounts = await orderManager.GetProductsAsync(userId, orderId);
+
+			Assert.All(productAmounts, pa => Assert.Equal(orderId, pa.OrderId));
+		}
+
+		[Fact]
+		public async Task GetProductsAsync_ExistingUserId_ReturnsAllProductAmountsFromOrderWithUserId()
+		{
+			var orders = GenerateOrders().ToList();
+			Order order = orders[0];
+			await SeedOrders(orders);
+
+			var products = await orderManager.GetProductsAsync(order.UserId);
+
+			Assert.All(products, pa => Assert.Equal(order.Id, pa.OrderId));
+		}
+
+		[Fact]
+		public async Task GetProductsAsync_ExistingOrderId_ReturnsAllProductAmountsFromOrderWithThisId()
+		{
+			var orders = GenerateOrders().ToList();
+			Order order = orders[0];
+			await SeedOrders(orders);
+
+			var products = await orderManager.GetProductsAsync(null, order.Id);
+
+			Assert.All(products, pa => Assert.Equal(order.Id, pa.OrderId));
+		}
+
+		[Fact]
+		public async Task GetProductsAsync_Nulls_ReturnsEmptyProductAmountsCollection()
+		{
+			var orders = GenerateOrders();
+			await SeedOrders(orders);
+
+			var productAmounts = await orderManager.GetProductsAsync(null, null);
+
+			Assert.Empty(productAmounts);
+		}
+
+		[Fact]
+		public async Task DeleteProductsAsync_SomeProductAmountIdsFromOrder_OrderDoesNotContainsTheseProductAmounts()
+		{
+			var orders = GenerateOrders().ToList();
+			Order order = orders[0];
+			var productIdsToDelete = order.ProductAmounts.Take(2).Select(p => p.ProductId).ToList();
+			await SeedOrders(orders);
+
+			await orderManager.DeleteProductsAsync(order.UserId, productIdsToDelete);
+
+			var assertOrder = await context.Orders.Include(o => o.ProductAmounts).FirstAsync(o => o.Id == order.Id);
+			Assert.DoesNotContain(assertOrder.ProductAmounts, pa => productIdsToDelete.Contains(pa.ProductId));
+		}
+
+		[Fact]
+		public async Task DeleteProductsAsync_IdOfUserWithoutOrder_ContextNotChanged()
+		{
+			var orders = GenerateOrders().ToList();
+			await SeedOrders(orders);
+			bool changed = false;
+			context.ChangeTracker.StateChanged += (o, e) => changed = true;
+			string userId = Guid.NewGuid().ToString();
+			var productIdsToDelete = orders[0].ProductAmounts.Select(p => p.ProductId).ToList();
+
+			await orderManager.DeleteProductsAsync(userId, productIdsToDelete);
+
+			Assert.False(changed);
+		}
+
+		[Fact]
+		public async Task DeleteProductsAsync_AllProductAmountIdsFromOrder_ThisOrderHasDeleted()
+		{
+			var orders = GenerateOrders().ToList();
+			Order order = orders[0];
+			var productIdsToDelete = order.ProductAmounts.Select(p => p.ProductId).ToList();
+			await SeedOrders(orders);
+
+			await orderManager.DeleteProductsAsync(order.UserId, productIdsToDelete);
+
+			var assertOrder = await context.Orders.FindAsync(order.Id);
+			Assert.Null(assertOrder);
+		}
+
+		[Fact]
+		public async Task BuyProductsAsync_ExistingUserId_OrderOfUserIsCompleted()
+		{
+			var orders = GenerateOrders().ToList();
+			Order order = orders[0];
+			await SeedOrders(orders);
+
+			await orderManager.BuyProductsAsync(order.UserId);
+
+			var assertOrder = await context.Orders.FindAsync(order.Id);
+			Assert.True(assertOrder.IsCompleted);
+		}
+
+		[Fact]
+		public async Task BuyProductsAsync_UserWithNoOrderId_ContextNotChanged()
+		{
+			var orders = GenerateOrders().ToList();
+			await SeedOrders(orders);
+			string userId = Guid.NewGuid().ToString();
+			bool changed = false;
+			context.ChangeTracker.StateChanged += (o, e) => changed = true;
+
+			await orderManager.BuyProductsAsync(userId);
+
+			Assert.False(changed);
+		}
+
+		private IEnumerable<Order> GenerateOrders(int count = 3)
+		{
+			Random random = new();
+			for (int i = 0; i < count; i++)
+			{
+				var orderId = Guid.NewGuid();
+				Order order = new()
+				{
+					Id = orderId,
+					UserId = Guid.NewGuid().ToString(),
+					ProductAmounts = new HashSet<ProductAmount>()
+				};
+				for (int y = 0; y < 3; y++)
+				{
+					order.ProductAmounts.Add(new()
+					{
+						OrderId = orderId,
+						ProductId = Guid.NewGuid(),
+						Amount = random.Next(1, 50),
+					});
+				}
+				yield return order;
+			}
+		}
+
+		private async Task SeedOrders(IEnumerable<Order> orders)
+		{
+			await context.AddRangeAsync(orders);
+			await context.SaveChangesAsync();
+		}
+
+		public ValueTask DisposeAsync()
+		{
+			return ((IAsyncDisposable)context).DisposeAsync();
 		}
 	}
 }
