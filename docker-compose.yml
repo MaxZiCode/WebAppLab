@@ -1,0 +1,17 @@
+version: "3.9"
+
+services:
+  web:
+    image: ${DOCKER_REGISTRY-}web
+    build:
+      context: .
+      dockerfile: Web/Dockerfile
+    environment: 
+        - INSIDE_DOCKER=true
+    depends_on:
+        - db
+  db:
+    image: "mcr.microsoft.com/mssql/server"
+    environment:
+        SA_PASSWORD: "ZBN0l0aSTYAxBtCV"
+        ACCEPT_EULA: "Y"
