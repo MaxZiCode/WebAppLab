@@ -69,6 +69,7 @@ namespace WebAppLab
 			{
 				app.UseSerilogRequestLogging();
 
+				context.Database.Migrate();
 				DbFiller.EnsureRolesCreatedAsync(roleManager).Wait();
 				DbFiller.EnsureAdminCreatedAsync(userManager, adminOptions).Wait();
 
