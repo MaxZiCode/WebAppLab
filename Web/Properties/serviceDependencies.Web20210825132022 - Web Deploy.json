@@ -1,9 +1,3 @@
 {
-  "dependencies": {
-    "mssql2": {
-      "type": "mssql.onprem",
-      "connectionId": "PublishConnection",
-      "secretStore": "AzureAppSettings"
-    }
-  }
+  "dependencies": {}
 }
