@@ -22,6 +22,16 @@
       },
       "dotnetRunMessages": "true",
       "applicationUrl": "https://localhost:8080"
+    },
+    "Docker": {
+      "commandName": "Docker",
+      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}",
+      "environmentVariables": {
+        "INSIDE_DOCKER": "true",
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "publishAllPorts": true,
+      "useSSL": true
     }
   }
 }

@@ -33,7 +33,7 @@ namespace WebAppLab
 
 		public void ConfigureServices(IServiceCollection services)
 		{
-			string connectionString = Environment.IsProduction() ? "PublishConnection" : "DefaultConnection";
+			string connectionString = Environment.IsProduction() ? "PublishConnection" : Configuration.GetValue<bool>("INSIDE_DOCKER") ? "DockerConnection" : "DefaultConnection";
 			services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString(connectionString))).AddDatabaseDeveloperPageExceptionFilter();
 
 			services
@@ -63,8 +63,9 @@ namespace WebAppLab
 
 		public void Configure(
 			IApplicationBuilder app, IWebHostEnvironment env,
-			RoleManager<IdentityRole> roleManager, UserManager<User> userManager, IOptions<AuthData> adminOptions)
+			RoleManager<IdentityRole> roleManager, UserManager<User> userManager, IOptions<AuthData> adminOptions, ApplicationDbContext context)
 		{
+			context.Database.Migrate();
 			DbFiller.EnsureRolesCreatedAsync(roleManager).Wait();
 			DbFiller.EnsureAdminCreatedAsync(userManager, adminOptions).Wait();
 
