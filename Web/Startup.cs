@@ -65,13 +65,12 @@ namespace WebAppLab
 			IApplicationBuilder app, IWebHostEnvironment env,
 			RoleManager<IdentityRole> roleManager, UserManager<User> userManager, IOptions<AuthData> adminOptions, ApplicationDbContext context)
 		{
-			context.Database.Migrate();
-			DbFiller.EnsureRolesCreatedAsync(roleManager).Wait();
-			DbFiller.EnsureAdminCreatedAsync(userManager, adminOptions).Wait();
-
 			if (env.IsDevelopment())
 			{
 				app.UseSerilogRequestLogging();
+
+				DbFiller.EnsureRolesCreatedAsync(roleManager).Wait();
+				DbFiller.EnsureAdminCreatedAsync(userManager, adminOptions).Wait();
 
 				app.UseMigrationsEndPoint();
 
