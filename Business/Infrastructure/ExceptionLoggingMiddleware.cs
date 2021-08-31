@@ -26,6 +26,7 @@ namespace WebAppLab.Infrastructure
 			catch (Exception ex)
 			{
 				logger.LogError(ex, "Global error.");
+				throw;
 			}
 		}
 	}
